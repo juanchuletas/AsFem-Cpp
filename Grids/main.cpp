@@ -1,6 +1,6 @@
 #include <iostream>
-#include "Grid.cpp"
-
+#include "Grid.hpp"
+#include "../Matrix/Matrix.hpp"
 
 
 int main (){

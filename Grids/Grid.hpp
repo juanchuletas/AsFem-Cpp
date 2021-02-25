@@ -2,7 +2,7 @@
 #define _GRID_H_
 #include<string>
 #include <cmath>
-#include "../Matrix/Matrix.cpp"
+#include "../Matrix/Matrix.hpp"
 template<class T> class Grid {
 
     Matrix<T> grid;
@@ -39,5 +39,5 @@ template<class T> class Grid {
 
         
 };
-
+#include "Grid.cpp"
 #endif // _GRID_H_

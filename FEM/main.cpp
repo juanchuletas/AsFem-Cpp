@@ -1,6 +1,6 @@
 #include <iostream>
 #include<string>
-#include "FiniteElement.cpp"
+#include "FiniteElement.hpp"
 
 
 
@@ -13,7 +13,7 @@ int main(){
     kij = new double[(order+1)*(order+1)];
     std::string name = "Froese-Fischer";
     FEM<double> fem;
-    //fem.setFemData(Ne,order, "Chebyshev");
+    fem.setFemData(Ne,order);
     sij = fem.getOverlap();
     kij = fem.getKinect();
     printf("Overlap[0] = %lf\n",sij[2]);

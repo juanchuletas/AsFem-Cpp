@@ -26,5 +26,6 @@ template<class T> class Matrix{
         const T& operator[](int i) const;
         T& operator[](int i);
 };
-
+#include "Matrix.cpp"
+ 
 #endif // _MATRIX_H_
