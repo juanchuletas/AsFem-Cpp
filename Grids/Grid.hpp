@@ -27,9 +27,11 @@ template<class T> class Grid {
         //METHODS
 
         void createGrid();
+        void createGrid(std::string name);
         void setGridData(double rinit, double rfinal,int Ne, int order,std::string meshType);
         void setGridData(double rinit, double rfinal,int Ne, int order,std::string meshType,int atomicN);
         void buildAtomic(int amtomicN);
+        void buildAtomic(int atomicN, std::string name);
         void buildChebyshev();
         T& getElementSize(int i);
         T& getGridItem(int i);

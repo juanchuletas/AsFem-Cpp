@@ -1,8 +1,6 @@
 #include "Grid.hpp"
 
 
-
-
 //********* CONSTRUCTORS AND DESTRUCTORS ***********
 template<class T>
 Grid<T>::Grid()
@@ -57,6 +55,16 @@ void Grid<T>::createGrid()
 {
     if(meshType=="Froese-Fischer"){
         buildAtomic(atomicN);
+    }
+    else if(meshType=="Chebyshev"){
+        buildChebyshev();
+    }
+}
+template<class T>
+void Grid<T>::createGrid(std::string name)
+{
+    if(meshType=="Froese-Fischer"){
+        buildAtomic(atomicN,name);
     }
     else if(meshType=="Chebyshev"){
         buildChebyshev();
@@ -127,11 +135,33 @@ void Grid<T>::buildAtomic(int atomicN){
             count++;
         }
     }
+    grid[0] = 0.f;
     grid[totalNodes-1] = rN;
-    printf("count = %d\n",count);
+    //printf("count = %d\n",count);
 
     delete [] rinitial;
 
+}
+template<class T>
+void Grid<T>::buildAtomic(int atomicN, std::string name){
+    int totnodes = Ne*order+1;
+    double rmf = 5.0;
+    double hmf = 1.0/24.0;
+    double ri,f_r1,f_r2;
+
+    double rmin = FroeseFischer(0,atomicN,rmf,hmf);
+    double rmax = FroeseFischer(totnodes,atomicN,rmf,hmf);
+    
+    f_r1 = (rN-r0)/(rmax-rmin);
+    f_r2 = (r0*rmax-rN*rmin)/(rmax-rmin);   
+    for(int i=1;i<totnodes;i++)
+    {
+        ri = FroeseFischer(i,atomicN,rmf,hmf);
+        grid[i] = f_r1*ri + f_r2;
+        //printf("Vertex value x[%d] = %lf\n",i,x[i]);
+    }
+    grid[0] = 0.f;
+    grid[totnodes-1] = rN;
 }
 template<class T>
 void Grid<T>::setGridData(double rinit, double rfinal,int inNe, int inorder,std::string inmeshType){
