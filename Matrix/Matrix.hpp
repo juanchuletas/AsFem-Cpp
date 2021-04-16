@@ -1,6 +1,7 @@
 #if !defined(_MATRIX_H_)
 #define _MATRIX_H_
 #include<string>
+#include "../LinearAlgebra/inlineStuff.hpp"
 template<class T> class Matrix{
 
     int matSize;
@@ -16,6 +17,8 @@ template<class T> class Matrix{
         void fillWithZeros();
         void printMatrix();
         void printMatrix(int, int, std::string name);
+        void sort();
+        Matrix<T> & sum();
         //GETTERS
         int getSize() const;
         //SETTERS

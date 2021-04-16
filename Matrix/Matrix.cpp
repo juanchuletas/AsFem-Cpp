@@ -5,14 +5,14 @@
 template<class T>
 Matrix<T>::Matrix()
 :matSize{0}{
-    std::cout<<"Default Constructor:\n";
+    //std::cout<<"Default Constructor:\n";
 
     items = nullptr;
 }
 template<class T>
 Matrix<T>::Matrix(int inputSize)
 :matSize{inputSize}{
-    std::cout<<"Default Constructor: allocating memory\n";
+    //std::cout<<"Default Constructor: allocating memory\n";
 
     items = new T[matSize];
 
@@ -20,7 +20,7 @@ Matrix<T>::Matrix(int inputSize)
 template<class T>
 Matrix<T>::Matrix(int inputSize,T& data)
 :matSize{inputSize}{
-    std::cout<<"Default Constructor: FILL WITH DATA MAT\n";
+    //std::cout<<"Default Constructor: FILL WITH DATA MAT\n";
 
     items = new T[matSize];
     for(int i=0; i<matSize; i++){
@@ -31,7 +31,7 @@ Matrix<T>::Matrix(int inputSize,T& data)
 template<class T>
 Matrix<T>::Matrix(const Matrix<T>&source)
 :matSize{source.matSize}{
-    std::cout<<"CPY CONSTRUCTOR\n";
+    //std::cout<<"CPY CONSTRUCTOR\n";
 
     items = new T[matSize];
     for(int i=0; i<matSize; i++){
@@ -41,7 +41,7 @@ Matrix<T>::Matrix(const Matrix<T>&source)
 }
 template<class T>
 Matrix<T>::~Matrix(){
-    std::cout<<"MAT Destructor\n";
+    //std::cout<<"MAT Destructor\n";
 
     delete []items;
 }
@@ -68,6 +68,65 @@ void Matrix<T>::printMatrix(int m, int n, std::string name){
                 printf( "\n" );
         }
 
+}
+template<class T>
+void Matrix<T>::sort(){
+    int m=-1;
+    static const int M=7, NSTACK=64;
+	int i,ir,j,k,jstack=-1,l=0,n=matSize;
+	double a;
+	Matrix<int> istack(NSTACK);
+	if (m>0) n = MIN(m,n);
+	ir=n-1;
+	for (;;) {
+		if (ir-l < M) {
+			for (j=l+1;j<=ir;j++) {
+				a=items[j];
+				for (i=j-1;i>=l;i--) {
+					if (items[i] <= a) break;
+					items[i+1]=items[i];
+				}
+				items[i+1]=a;
+			}
+			if (jstack < 0) break;
+			ir=istack[jstack--];
+			l=istack[jstack--];
+		} else {
+			k=(l+ir) >> 1;
+			SWAP(items[k],items[l+1]);
+			if (items[l] > items[ir]) {
+				SWAP(items[l],items[ir]);
+			}
+			if (items[l+1] > items[ir]) {
+				SWAP(items[l+1],items[ir]);
+			}
+			if (items[l] > items[l+1]) {
+				SWAP(items[l],items[l+1]);
+			}
+			i=l+1;
+			j=ir;
+			a=items[l+1];
+			for (;;) {
+				do i++; while (items[i] < a);
+				do j--; while (items[j] > a);
+				if (j < i) break;
+				SWAP(items[i],items[j]);
+			}
+			items[l+1]=items[j];
+			items[j]=a;
+			jstack += 2;
+			if (jstack >= NSTACK) throw("NSTACK too small in sort.");
+			if (ir-i+1 >= j-l) {
+				istack[jstack]=ir;
+				istack[jstack-1]=i;
+				ir=j-1;
+			} else {
+				istack[jstack]=j-1;
+				istack[jstack-1]=l;
+				l=i;
+			}
+		}
+	}
 }
 //*** END METHODS **********
 
