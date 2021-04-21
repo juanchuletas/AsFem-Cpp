@@ -14,11 +14,14 @@ int main ()
     double rN = 20.0;
     int poissNe = 100;
     int angular = 0;
-    std::string atom = "H";
+    int charge = 0;
+    double lambda = 0.f, wallValue = 0.f, rC = 0.f; 
+    std::string atom = "He";
     std::string atomicModel = "Free-Atom";
     std::string gridName = "Froese-Fischer";
-    std::string femModel = "Fixed Points";
+    std::string femModel = "Fixed Elements";
     std::string integrals = "Analitic";
+    std::string confType = "Free";
     int atomicN = getAtomicNumber(atom);
     if(femModel=="Fixed Points"){
         printf("Fixed Points\n");
@@ -27,14 +30,22 @@ int main ()
         //std::cout<<"Points for this run: "<<Ne<<std::endl;
     }
     else{
-        Ne = 100;
+        Ne = 200;
     }
     std::cout<<"Elements for this run: "<<Ne<<std::endl;
-    //
-    ASFEM asfem{Ne, order, poissNe, femModel,r0, rN, gridName,atomicN,atomicModel,integrals};
-    asfem.printInitialData();
+    /*ASFEM ASFEM(std::string _femModel, int Ne, 
+    int order,std::string _atomicModel, 
+    double _lambda,std::string _confType,
+    double _Rc,double _wallVal,int _atomicN, 
+    int _charge,int _angular, double rInfty,
+    std::string _integrals);*/
+    ASFEM asfem{femModel,Ne,order,atomicModel,lambda,confType,rC,wallValue,atomicN,charge,angular,gridName,rN, integrals};
     asfem.startProgram();
-    //asfem.printWfn(1);
+    asfem.printInitialData();
+    /* ASFEM asfem{Ne, order, poissNe, femModel,r0, rN, gridName,atomicN,atomicModel,integrals};
+    asfem.printInitialData();
+    asfem.startProgram(); */
+    asfem.printWfn(1);
 
 
 

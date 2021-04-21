@@ -1,11 +1,11 @@
 #if !defined(_ASFEM_H_)
 #define _ASFEM_H_
 #include "../FEM/FiniteElement.hpp"
-#include "Tools/searchelements.hpp"
-#include "Tools/external_potential.hpp"
-#include "Tools/math_tools.hpp"
-#include "Tools/matrices_operations.hpp"
-#include "Tools/math_modules.hpp"
+#include "../Tools/searchelements.hpp"
+#include "../Tools/external_potential.hpp"
+#include "../Tools/math_tools.hpp"
+#include "../Tools/matrices_operations.hpp"
+#include "../Tools/math_modules.hpp"
 #include <fstream>
 
 class ASFEM: public FEM {
@@ -18,7 +18,9 @@ class ASFEM: public FEM {
     int total_nodes;
     int fem_nodes;
     int occOrb;
-    int charge; 
+    int charge;
+    int numElectrons; 
+    double totQ;
     std::string atomName;
     std::string atomicModel;
     std::string confType;
@@ -29,21 +31,22 @@ class ASFEM: public FEM {
     //Matrix<double> sij, vij, kij;
     double *uij{nullptr}, *lij{nullptr}; //Only when the poisson problem has a different size 
     //Private Methods
-    void computeHartreePotential();
     void getDensity();
-    void diagonalize();
-    void getExternalPotential(); //get the -z/r 
-    void HartreeFock();
+    void getExternalPotential(); //get the -z/r
     void performSCF();
+    double* computeHartreePotential(double *hpot);
     void getExternalPotentialMatrix();
     void singleDiagonalization();
     void wfnNormalization();
     void wfnNormalization(std::string name);
+    void getDensityMatrix(double *densMat);
+    double energyHF(double *hij, double *fij,double *densMat);
     //double integrateElement();
 
 
     public:
         ASFEM();
+        ASFEM(std::string _femModel, int Ne, int order,std::string _atomicModel, double _lambda,std::string _confType,double _Rc,double _wallVal,int _atomicN, int _charge,int _angular,std::string _gridName, double rInfty,std::string _integrals);
         ASFEM(int _Ne, int _order, int _poissonNe, std::string _femModel,double rin, double rInfty,std::string gridType,int atom,std::string intAtomicModel,std::string integrationType);
         ~ASFEM();
         //METHODS
@@ -56,6 +59,8 @@ class ASFEM: public FEM {
 
 
 }; //_ASFEM_H_
+
+// *** A NOM MEMBER USEFUL METHOD
 double integrateElement(int ei,int order,double *feMatS, int *link_mat, double coeff, double *cf){
     int poly = order +1; 
     double phi[poly];

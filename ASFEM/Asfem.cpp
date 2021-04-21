@@ -7,13 +7,31 @@
 // "Analitic" Computes the numeric integrals avoiding the V(R=0)
 ASFEM::ASFEM(){/*Default Constructor*/}
 
+ASFEM::ASFEM(std::string femModel, int Ne, int order,std::string _atomicModel, double _lambda,std::string _confType,double _Rc,double _wallVal,int _atomicN, int _charge,int _angular, std::string gridType,double rInfty,std::string _integrals)
+:FEM{Ne,order,femModel, gridType},r0{0.0},rN{rInfty},atomicN{_atomicN},atomicModel{_atomicModel},integrationScheme{_integrals},wallValue{_wallVal},
+cutRad{_Rc},lambda{_lambda},charge{_charge},angular{_angular}{
+    std::cout<<"ASFEM constructor 1.\n";
+    total_nodes = Ne*order+1;
+    fem_nodes = total_nodes-2;
+    numElectrons = atomicN-charge;
+    totQ = numElectrons;
+    occOrb = atomicN/2;
+    wfn = new double[bcSize*bcSize];
+    eigenVal = new double[bcSize];
+    rho = new double[bcSize];
+    vr = new double[globalSize];
+
+}
+
 ASFEM::ASFEM(int Ne, int order, int poissonNe, 
 std::string femModel,double _r0, 
 double _rN,std::string gridType,int atom, std::string intAtomicModel,std::string potInteg)
-:FEM{Ne, order,poissonNe, femModel,gridType},r0{_r0},rN{_rN},atomicN{atom},atomicModel{intAtomicModel},integrationScheme{potInteg}{
+:FEM{Ne, order, poissonNe,femModel,gridType},r0{_r0},rN{_rN},atomicN{atom},atomicModel{intAtomicModel},integrationScheme{potInteg}{
     total_nodes = Ne*order +1;
     fem_nodes = total_nodes - 2;
     occOrb = atomicN/2;
+    numElectrons = atomicN-charge;
+    totQ = numElectrons;
     vr = new double[globalSize];
     wfn = new double[bcSize*bcSize];
     eigenVal = new double[bcSize];
@@ -47,7 +65,7 @@ void ASFEM::wfnNormalization(std::string name){
                 int i = linkMat[indx];
                 x[j] = femgrid[i];
             }
-            feMatS = getOverlapElementalMatrices(x,order);
+            feMatS = getFixedPointsOverlapMatrices(x,order);
             normConst  += integrateElement(ei,order,feMatS,&linkMat[0],1.0, cf);
         }
         normConst = 1.0/sqrt(normConst);
@@ -76,23 +94,9 @@ void ASFEM::wfnNormalization(){
         normConst=0.0;
         for(int ei=0; ei<Ne; ei++){
             double coeff = 0.5*femgrid.getElementSize(ei);
-            printf("coef = %lf\n",coeff);
-            double phi[poly];
-            for(int j=0; j<poly; j++){
-                phi[j] = cf[linkMat[poly*ei+j]];
-                /* printf("phi = %lf\n",phi[j]); */
-            }
-            double value = 0.0;
-            for(int mu=0; mu<poly; mu++){
-                for(int nu=0; nu<poly; nu++){
-                    value = value + phi[mu]*phi[nu]*(coeff*feMatS[poly*mu + nu]);
-                    //printf("Value = %lf\n",normConst);
-                }
-            }
-            normConst += value;
+            normConst  += integrateElement(ei,order,feMatS,&linkMat[0],coeff, cf);
         }
         normConst = 1.0/sqrt(normConst);
-        /* printf("consN = %lf\n",normConst); */
         for(int i=0; i<fem_nodes; i++){
             wfn[i+fem_nodes*orbital] *= normConst;
             //printf("Wfn = %lf\n",wfn[i+fem_nodes*orbital]);
@@ -101,21 +105,59 @@ void ASFEM::wfnNormalization(){
     delete [] cf;
     delete [] feMatS;
 }
+// ***** COMPUTE DENSITY AND DENSITY MATRIX**************************************
 void ASFEM::getDensity(){
-    if(atomicN!=1){
+    if(numElectrons!=1){
         for(int i=0; i<bcSize; i++){
             for(int orb=0; orb<occOrb; orb++){
                 rho[i] += wfn[i + orb*bcSize]*wfn[i + orb*bcSize];
-                rho[i] += 2.0*wfn[i];
+                rho[i] = 2.0*rho[i];
             }
         }
     }
-    else{//This is the density for the Hidrogen Atom;
+    else{//This is the density for the Hidrogen like Atoms;
         int orb=0;
         for(int i=0; i<bcSize; i++){
             rho[i] = wfn[i + orb*bcSize]*wfn[i+orb*bcSize];
         }
     }
+}
+void ASFEM::getDensityMatrix(double *densMat){
+    int k=0;
+    std::cout<<"Orbital od Interest: "<<occOrb<<std::endl;
+    for(int i=0; i<bcSize; i++){
+        for(int j=0; j<bcSize; j++){
+            for(int orb=0; orb<occOrb; orb++){
+                densMat[k] = 2.0*(wfn[i + orb*bcSize]*wfn[j + orb*bcSize]);
+            }
+            k++;
+        }
+    }
+
+}
+//**************************************************************************************
+//***** HARTREE_POTENTIAL **********************
+double * ASFEM::computeHartreePotential(double *hpot){
+    double *vh_r = new double[total_nodes];
+
+    for(int i=0; i<bcSize; i++){
+        vh_r[i+1]= hpot[i]/femgrid[i+1];
+    }
+    vh_r[0]=doInterpolation(&femgrid[0],vh_r,4);
+    vh_r[total_nodes-1]=totQ/femgrid[total_nodes-1];
+    return vh_r;
+}
+//*******************************************
+double ASFEM::energyHF(double *hij, double *fij,double *densMat){
+    
+    double energy = 0.0;
+	for(int i=0; i<bcSize*bcSize; i++)
+	{
+		energy = energy + 0.5*(hij[i]*densMat[i]);
+		energy = energy + 0.5*(fij[i]*densMat[i]);
+	}
+	return 0.5*energy;
+
 }
 void ASFEM::singleDiagonalization(){
     double *hij = new double[bcSize*bcSize];
@@ -127,11 +169,7 @@ void ASFEM::singleDiagonalization(){
     printf("orbital value: %.10lf\n",0.5*eigenVal[0]);
     wfnNormalization(femModel);
     asfem_tools::wfn::getWfnPhase(fem_nodes,0,&phase,wfn);
-    for(int i=0; i<bcSize; i++){
-        printf("WFN NORMALIZED = %lf\n",wfn[i + bcSize*0]*phase);
-    } 
     delete [] hij;
-
 }
 void ASFEM::getExternalPotential(){
 
@@ -140,6 +178,54 @@ void ASFEM::getExternalPotential(){
     //vr[0] = 14.447169; 
     printf("Extrapolation Value v(r=0) = %lf\n",vr[0]);
 }
+//************* SCF*************************************
+void ASFEM::performSCF(){
+    double *hij = new double[bcSize*bcSize];
+    double *vhij = new double[bcSize*bcSize];
+    double *densMat = new double[bcSize*bcSize];
+    double *fij = new double[bcSize*bcSize];
+    double *R_rho = new double[bcSize];
+    double *hpot = new double[bcSize];
+    double *R_hpot{nullptr};
+    FillZeroMat(fij,bcSize,bcSize);
+    FillZeroMat(vhij,bcSize,bcSize);
+    int phase;
+    SumMatrices(&vij[0],&kij[0],hij,bcSize*bcSize);
+    diag(bcSize,hij,&sij[0],eigenVal,wfn);
+    printf("First orbital value: %.10lf\n",0.5*eigenVal[0]);
+    wfnNormalization();
+    asfem_tools::wfn::getWfnPhase(fem_nodes,0,&phase,wfn);
+    getDensityMatrix(densMat);
+    double energy0 = energyHF(hij,fij,densMat);
+    printf("First Hartree-Fock Energy: %lf\n",energy0);
+    getDensity();
+    divideBy(R_rho,rho,&femgrid[0],bcSize);
+    solvePoissonEquation(hpot, R_rho,totQ);
+    R_hpot = computeHartreePotential(hpot);
+    double new_hf= energy0;
+    double orb_e,old_hf;
+    fixedElementsNumIntegration(vhij,R_hpot);
+    for(int i=0; i<globalSize; i++){
+        //printf("RVH = %lf\n",R_hpot[i]);
+    }
+    int nodes = globalSize;
+
+    SumMatrices(hij,vhij,fij,bcSize*bcSize);
+    diag(bcSize,fij,&sij[0],eigenVal,wfn);
+    printf("Orbital value: %.10lf\n",0.5*eigenVal[0]);
+
+    delete [] hij;
+    delete [] vhij;
+    delete [] densMat;
+    delete [] fij;
+    delete [] R_rho;
+    delete [] hpot;
+    delete [] R_hpot;
+    
+
+    
+}
+//****** SCF**********************************************
 //********  PUBLIC METHODS **************************
 void ASFEM::printWfn(int orbital){
     int realOrb = orbital-1;
@@ -166,12 +252,14 @@ void ASFEM::startProgram(){
     if(femModel=="Fixed Elements"){
         buildFemGrid(atomicN,r0,rN);
         getExternalPotential();
-        singleDiagonalization();
+        assambleFemMatrices(vr);
+        //singleDiagonalization();
+         performSCF();
     }
     else{
         buildFemGrid(atomicN,r0,rN);
         assambleFemMatrices(atomicN);
-        singleDiagonalization();
+        performSCF();
     }
 }
 void ASFEM::printInitialData(){
@@ -181,7 +269,7 @@ void ASFEM::printInitialData(){
     std::cout<<"Number of Elements: "<<Ne<<std::endl;
     std::cout<<"Total Points: "<<(Ne*order + 1)<<std::endl;
     std::cout<<"Polynomial Order: "<<order<<std::endl;
-    std::cout<<"Atom: "<<atomName<<std::endl;
+    std::cout<<"Atomic Number: "<<atomicN<<std::endl;
     std::cout<<"Model: "<<atomicModel<<std::endl;
     if(atomicModel=="Confined-Atom"){
         std::cout<<"Confinement: "<<confType<<std::endl;
