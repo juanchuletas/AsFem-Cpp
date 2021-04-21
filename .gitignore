@@ -1,0 +1,4 @@
+ASFEM/*.exe
+FEM/*.exe
+Grids/*.exe
+Matrix/*.exe
