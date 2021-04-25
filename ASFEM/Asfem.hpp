@@ -59,21 +59,4 @@ class ASFEM: public FEM {
 
 
 }; //_ASFEM_H_
-
-// *** A NOM MEMBER USEFUL METHOD
-double integrateElement(int ei,int order,double *feMatS, int *link_mat, double coeff, double *cf){
-    int poly = order +1; 
-    double phi[poly];
-    for(int j=0; j<poly; j++){
-        phi[j] = cf[link_mat[poly*ei+j]];
-    }
-    double value = 0.0;
-    for(int mu=0; mu<poly; mu++){
-        for(int nu=0; nu<poly; nu++){
-            value = value + phi[mu]*phi[nu]*(coeff*feMatS[poly*mu + nu]);
-        }
-    }
-    return value;
-
-}
 #endif

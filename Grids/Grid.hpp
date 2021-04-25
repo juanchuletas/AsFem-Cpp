@@ -3,6 +3,7 @@
 #include<string>
 #include <cmath>
 #include "../Matrix/Matrix.hpp"
+#include "../Static/grid_tools.hpp"
 template<class T> class Grid {
 
     Matrix<T> grid;
@@ -16,7 +17,10 @@ template<class T> class Grid {
     double r0,rN;
     std::string meshType;
     private://FUNCTIONS
-        double FroeseFischer(int i, double z, double r, double h){return (exp(-r + h*(double)i)/z);}
+        double FroeseFischer(int i, double z, double r, double h){
+            double x = exp(-r + h*(double)i/z);
+            return x;
+        }
         
     public:
         Grid();
@@ -33,6 +37,7 @@ template<class T> class Grid {
         void buildAtomic(int amtomicN);
         void buildAtomic(int atomicN, std::string name);
         void buildChebyshev();
+        void forceInsertion(double cutVal);
         T& getElementSize(int i);
         T& getGridItem(int i);
         int size();

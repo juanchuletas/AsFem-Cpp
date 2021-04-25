@@ -71,6 +71,27 @@ void Grid<T>::createGrid(std::string name)
     }
 }
 template<class T>
+void Grid<T>::forceInsertion(double cutRad){
+    //Only working for Froese-Fischer Grid
+    std::cout<<"Force Insertion Module\n";
+    
+    double rcPoints  = grid_tools::froese_fischer::inverseKernel(cutRad,atomicN);
+    int points = floor(rcPoints);
+    if(points%2==0){
+        points = points - 1;
+    }
+    int numOfEl = (points-2)/order;
+    int poiss_nodes = numOfEl*order+1;
+    grid[points] = cutRad;
+    std::cout<<"Index of the Rc in the grid: "<<points<<std::endl;
+    std::cout<<"Poisson equation elements: "<<numOfEl<<std::endl;
+    std::cout<<"Poisson equation total points: "<<poiss_nodes<<std::endl;
+    std::cout<<"Poisson equation bc points: "<<poiss_nodes-2<<std::endl;
+    std::cout<<"Otherwise equation size: "<<Ne-numOfEl<<std::endl;
+
+
+}
+template<class T>
 void Grid<T>::buildChebyshev(){
     double xi,ra,rb;
     double  rMax;
@@ -148,15 +169,20 @@ void Grid<T>::buildAtomic(int atomicN, std::string name){
     double rmf = 5.0;
     double hmf = 1.0/24.0;
     double ri,f_r1,f_r2;
+    double nucleii = static_cast<double>(atomicN);
+    printf("From build atomic totpoints = %d\n",totnodes);
+    /* double rmin = FroeseFischer(0,atomicN,rmf,hmf);
+    double rmax = FroeseFischer(totnodes,atomicN,rmf,hmf); */
 
-    double rmin = FroeseFischer(0,atomicN,rmf,hmf);
-    double rmax = FroeseFischer(totnodes,atomicN,rmf,hmf);
+    double rmin  = grid_tools::froese_fischer::kernel(0,nucleii);
+    double rmax  = grid_tools::froese_fischer::kernel(totnodes,nucleii);
     
     f_r1 = (rN-r0)/(rmax-rmin);
     f_r2 = (r0*rmax-rN*rmin)/(rmax-rmin);   
     for(int i=1;i<totnodes;i++)
     {
-        ri = FroeseFischer(i,atomicN,rmf,hmf);
+        //ri = FroeseFischer(i,atomicN,rmf,hmf);
+        ri = grid_tools::froese_fischer::kernel(i,nucleii);
         grid[i] = f_r1*ri + f_r2;
         //printf("Vertex value x[%d] = %lf\n",i,x[i]);
     }
@@ -170,7 +196,6 @@ void Grid<T>::setGridData(double rinit, double rfinal,int inNe, int inorder,std:
     totalNodes = Ne*order+1;
     bcNodes= totalNodes-2;
     polynomial = order+1;
-
     grid.setMatrix(totalNodes);
     elSize.setMatrix(Ne);
 }
@@ -180,6 +205,7 @@ void Grid<T>::setGridData(double rinit, double rfinal,int inNe, int inorder,std:
     order = inorder; meshType = inmeshType;
     atomicN = inatomicN;
     totalNodes = Ne*order+1;
+    printf("set grid data totalnodes = %d\n",totalNodes);
     bcNodes= totalNodes-2;
     polynomial = order+1;
     grid.setMatrix(totalNodes);

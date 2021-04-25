@@ -1,29 +1,29 @@
 #include <iostream>
 #include "Grid.hpp"
-#include "../Matrix/Matrix.hpp"
+//#include "../Matrix/Matrix.hpp"
 
 
 int main (){
-
-    int Ne = 10;
-    int order = 3;
+    grid_tools::froese_fischer::hmf = 1.0/24.0;
+    grid_tools::froese_fischer::rmf = 5.0;
+    int Ne = 191;
+    int order = 2;
     double r0 = 0;
-    double rc = 4.0;
-    double rinfty = 10.0;
+    double rc = 1.5;
+    double rinfty = 20.0;
     int atomicN = 2;  
     std::string mesh = "Froese-Fischer";
     std::string mesh2 = "Chebyshev";
-    Grid<double> myGrid,mygrid2;
-    mygrid2.setGridData(rc,rinfty,Ne,order,mesh2,2);
-    myGrid.setGridData(r0,rc,Ne,order,mesh,2);
-    mygrid2.createGrid();
-    myGrid.createGrid();
+    std::string kind = "Fixed Elements";
+    Grid<double> myGrid;
+    myGrid.setGridData(r0,rinfty,Ne,order,mesh,2);
+    myGrid.createGrid(kind);
+    myGrid.forceInsertion(rc);
+    printf("Grid size: %d\n",myGrid.size());
     for(int i=0; i<myGrid.size(); i++){
-        printf("%lf\n", myGrid[i]);
+        printf("r[%d] = %lf\n",i, myGrid[i]);
     }
-    for(int i=0; i<myGrid.size(); i++){
-        printf("%lf\n", mygrid2[i]);
-    }
+   
     //myGrid.printGrid();
 
 

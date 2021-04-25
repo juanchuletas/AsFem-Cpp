@@ -5,6 +5,7 @@
 // "Numeric" it needs the External Potential Evaluated in the FEM GRID
 // Numeric integration needs an extrapolated value at V(r=0)
 // "Analitic" Computes the numeric integrals avoiding the V(R=0)
+// ** CONSTRUCTORS *****
 ASFEM::ASFEM(){/*Default Constructor*/}
 
 ASFEM::ASFEM(std::string femModel, int Ne, int order,std::string _atomicModel, double _lambda,std::string _confType,double _Rc,double _wallVal,int _atomicN, int _charge,int _angular, std::string gridType,double rInfty,std::string _integrals)
@@ -44,6 +45,7 @@ ASFEM::~ASFEM(){
     delete [] eigenVal;
     delete [] rho;
 }
+// *** END CONSTRUCTORS AND DESTRUCTORS
 //******** PRIVATE METHODS ******************
 void ASFEM::wfnNormalization(std::string name){
     double *cf = new double[total_nodes];
@@ -122,7 +124,7 @@ void ASFEM::getDensity(){
         }
     }
 }
-void ASFEM::getDensityMatrix(double *densMat){
+void ASFEM::getDensityMatrix(double *densMat){ //May be implemented in the Atomic Structure Static Class
     int k=0;
     std::cout<<"Orbital od Interest: "<<occOrb<<std::endl;
     for(int i=0; i<bcSize; i++){
@@ -189,26 +191,27 @@ void ASFEM::performSCF(){
     double *R_hpot{nullptr};
     FillZeroMat(fij,bcSize,bcSize);
     FillZeroMat(vhij,bcSize,bcSize);
+    FillZeroMat(hij,bcSize,bcSize);
     int phase;
     SumMatrices(&vij[0],&kij[0],hij,bcSize*bcSize);
     diag(bcSize,hij,&sij[0],eigenVal,wfn);
     printf("First orbital value: %.10lf\n",0.5*eigenVal[0]);
-    wfnNormalization();
+    wfnNormalization(femModel);
     asfem_tools::wfn::getWfnPhase(fem_nodes,0,&phase,wfn);
     getDensityMatrix(densMat);
     double energy0 = energyHF(hij,fij,densMat);
-    printf("First Hartree-Fock Energy: %lf\n",energy0);
+    printf("First Hartree-Fock Energy: %.10lf\n",energy0);
     getDensity();
     divideBy(R_rho,rho,&femgrid[0],bcSize);
     solvePoissonEquation(hpot, R_rho,totQ);
     R_hpot = computeHartreePotential(hpot);
     double new_hf= energy0;
     double orb_e,old_hf;
-    fixedElementsNumIntegration(vhij,R_hpot);
-    for(int i=0; i<globalSize; i++){
-        //printf("RVH = %lf\n",R_hpot[i]);
-    }
-    int nodes = globalSize;
+    //fixedElementsNumIntegration(vhij,R_hpot);
+    fixedPointsNumIntegration(vhij,R_hpot);
+    /* for(int i=0; i<bcSize; i++){
+        printf("dens = %lf\n",rho[i]);
+    } */
 
     SumMatrices(hij,vhij,fij,bcSize*bcSize);
     diag(bcSize,fij,&sij[0],eigenVal,wfn);
@@ -247,18 +250,20 @@ void ASFEM::printWfn(int orbital){
 }
 void ASFEM::startProgram(){
     //This public Method starts the ASFEM program
-
+    if(atomicN==1){
+        singleDiagonalization();
+    }
     //Build the FEM Grid
-    if(femModel=="Fixed Elements"){
+     if(femModel=="Fixed Elements"){
         buildFemGrid(atomicN,r0,rN);
         getExternalPotential();
-        assambleFemMatrices(vr);
+        assambleMatricesFixedElements(vr);
         //singleDiagonalization();
          performSCF();
     }
     else{
         buildFemGrid(atomicN,r0,rN);
-        assambleFemMatrices(atomicN);
+        assambleMatricesFixedPoints(atomicN);
         performSCF();
     }
 }

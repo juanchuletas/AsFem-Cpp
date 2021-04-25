@@ -7,7 +7,8 @@
 int main ()
 {
 
-
+    grid_tools::froese_fischer::rmf = 5.0;
+    grid_tools::froese_fischer::hmf = 1.0/24;
     int Ne;
     int order = 2;
     double r0 = 0.0;
@@ -19,7 +20,7 @@ int main ()
     std::string atom = "He";
     std::string atomicModel = "Free-Atom";
     std::string gridName = "Froese-Fischer";
-    std::string femModel = "Fixed Elements";
+    std::string femModel = "Fixed Points";
     std::string integrals = "Analitic";
     std::string confType = "Free";
     int atomicN = getAtomicNumber(atom);
