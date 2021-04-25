@@ -116,7 +116,7 @@ void FEM::reduceMatrix(double *matG, Matrix<double> &mat,int size){
     }
 
 }
-void FEM::assambleFemMatrices(int atomicN){
+void FEM::assambleMatricesFixedPoints(int atomicN){
     //FOR THE FIXED POINTS MODEL AND EXACT EXTERNAl POTENTIAL INTEGRATION
     double *s_matG = new double[globalSize*globalSize];
     double *k_matG = new double[globalSize*globalSize];
@@ -205,7 +205,7 @@ void FEM::solvePoissonEquation(double *hpot, double *rho_r,double hp){
     delete [] aux_vec;
 }
 
-void FEM::assambleFemMatrices(double *pot){
+void FEM::assambleMatricesFixedElements(double *pot){
     //FOR THE FIXED ELEMENTS MODEL AND NUMERIC INTEGRATION OF THE EXTERNAL POTENTIAL
     //****** GLOBAL MATRICES *************
     double *s_matG = new double[globalSize*globalSize];
@@ -262,6 +262,45 @@ void FEM::assambleFemMatrices(double *pot){
     delete [] k_matG;
     delete [] v_matG;
 }
+//************* METHODS FOR NUMERICAL INTEGRATION
+void FEM::fixedPointsNumIntegration(double *inMat,double *pot){
+
+    double *p_matG = new double[globalSize*globalSize];
+    FillZeroMat(p_matG,globalSize,globalSize);
+    double *feMatP;
+    double v[poly];
+    double x[poly];
+    
+    for(int ei=0; ei<Ne; ei++){
+        for(int j=0; j<poly; j++){
+            int indx = poly*ei+j;
+            int i = getLinkMatIndex(indx);
+            v[j] = pot[i];
+            x[j] = femgrid[i];
+        }
+        feMatP = getFixedPointsNumPotMatrices(x,v,order);
+        for(int nu=0; nu<poly; nu++) {
+            int index_nu = poly*ei + nu;
+            int l = getLinkMatIndex(index_nu);
+            for(int mu = 0; mu<poly; mu++){
+                int index_mu = poly*ei+mu;
+                int m = getLinkMatIndex(index_mu);
+                p_matG[l*globalSize+m] += feMatP[poly*nu+mu];
+                //printf("fem[%d] = %lf \n",l*globalSize+m,p_matG[l*globalSize+m]);
+            }
+        }
+    }
+    //**** This part reduce the global matrices according to the 
+    // proper boundary conditions***********************
+    reduceMatrix(p_matG,inMat,globalSize);
+
+    //**********************************************************
+
+    // FREE ALL THE SHIT ALLOCATED ABOVE
+    delete [] feMatP;
+    delete [] p_matG;
+
+}
 void FEM::fixedElementsNumIntegration(double *inMat, double *pot)
 {
     double *p_matG = new double[globalSize*globalSize];
@@ -303,4 +342,57 @@ void FEM::fixedElementsNumIntegration(double *inMat, double *pot)
     delete [] p_matG;
  
 }
+void FEM::assamblePoissonMatrices(double *lij, double *uij,int pNe){
+    int pNodes = pNe*order+1; //pNodes->poisson Nodes
+    int pbcNodes = pNodes-2;
+    double *poiss_matL = new double[pNodes*pNodes];
+    double *poiss_matU= new double[pNodes*pNodes];
+    FillZeroMat(poiss_matL,pNodes,pNodes);
+    FillZeroMat(poiss_matU,pNodes,pNodes);
+    double *feMatL, *feMatU;
+
+    double x[poly]; //This method needs the points in the grid
+    for(int ei=0; ei<pNe; ei++){
+        for(int j=0; j<poly; j++){
+            int indx = poly*ei + j; 
+            int i = linkMat[indx];
+            x[j] = femgrid[i];
+        }
+        feMatU = getFixedPointsOverlapMatrices(x,order);
+        feMatL = getFixedPointsKinectMatrices(x,order);
+        //printf("[0] = %lf\n",feMatV[0]);
+        for(int nu=0; nu<poly; nu++){
+            int index_nu = poly*ei + nu; 
+            int l = linkMat[index_nu];
+            for(int mu=0; mu<poly; mu++){
+
+                int index_mu = poly*ei+mu;
+                int m = linkMat[index_mu];
+                poiss_matU[l*pNodes+m] += feMatU[poly*nu+mu];
+                poiss_matL[l*pNodes+m] += feMatL[poly*nu+mu];
+            }
+        }
+    }
+    reduceMatrix(poiss_matU,uij,pNodes);
+    reduceMatrix(poiss_matL,lij,pNodes);
+    delete [] poiss_matL;
+    delete [] poiss_matU;
+
+}
+
 // *** END METHODS
+double integrateElement(int ei,int order,double *feMatS, int *link_mat, double coeff, double *cf){
+    int poly = order +1; 
+    double phi[poly];
+    for(int j=0; j<poly; j++){
+        phi[j] = cf[link_mat[poly*ei+j]];
+    }
+    double value = 0.0;
+    for(int mu=0; mu<poly; mu++){
+        for(int nu=0; nu<poly; nu++){
+            value = value + phi[mu]*phi[nu]*(coeff*feMatS[poly*mu + nu]);
+        }
+    }
+    return value;
+
+}

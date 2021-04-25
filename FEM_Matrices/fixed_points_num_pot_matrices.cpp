@@ -1,5 +1,5 @@
 #include"fixed_points_num_pot_matrices.hpp"
-double *getFixedPointsNumPotMatrices(double *x,double *v, int order,int z) {
+double *getFixedPointsNumPotMatrices(double *x,double *v, int order) {
 
 	int P = order + 1;
 

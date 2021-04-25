@@ -2,6 +2,6 @@
 #define _FIXED_POINTS_NUM_POT_MATRICES
 #include<iostream>
 #include<cmath>
-double *getFixedPointsNumPotMatrices(double *x,double *v, int order,int z);
+double *getFixedPointsNumPotMatrices(double *x,double *v, int order);
 
 #endif // _FIXED_POINTS_NUM_POT_MATRICES

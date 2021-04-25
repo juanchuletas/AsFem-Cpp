@@ -13,7 +13,7 @@ int main(){
     kij = new double[(order+1)*(order+1)];
     std::string name = "Froese-Fischer";
     FEM fem;
-    fem.setFemData(Ne,order);
+    //fem.setFemData(Ne,order);
     /* sij = fem.getOverlap();
     kij = fem.getKinect();
     printf("Overlap[0] = %lf\n",sij[2]);

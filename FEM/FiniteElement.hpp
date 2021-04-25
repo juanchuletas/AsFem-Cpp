@@ -45,17 +45,24 @@ class FEM {
         FEM(int _Ne, int _order, std::string _femModel, std::string _gridName); 
         FEM(int _Ne, int _order,int _poissonNe, std::string _femModel,std::string gridName);
         ~FEM();
+        // **** METHODS**********
+        void solvePoissonEquation(double *hpot,double *rho_r,double hp); //Working! Don't touch
+        void assamblePoissonMatrices(double *lij, double *uij,int pNe);
+        void buildFemGrid(int atomicN,double r0,double rN); //Working
         void setFemData(int inNe, int inOrder);
         int& getLinkMatIndex(int i);
-        void assambleFemMatrices(double *v); // for Kinect, Overlap adnd Potential Matrices
-        void assambleFemMatrices(int atomicN); //Full numeric integration with no equal spaced elements
+        // ******* FIXED ELEMENTS MODEL METHODS***********
+
+        void assambleMatricesFixedElements(double *v); // for Kinect, Overlap adnd Potential Matrices
         void fixedElementsNumIntegration(double *mat,double *vec);
-        void buildFemGrid(int atomicN,double r0,double rN); //Working
-        void solvePoissonEquation(double *hpot,double *rho_r,double hp); //Working! Don't touch
+        //****** FIXED POINTS METHODS  ****************
+        void assambleMatricesFixedPoints(int atomicN); 
+        void fixedPointsNumIntegration(double *mat, double *vec);//Full numeric integration with no equal spaced elements
+
 };
 
-#include "FiniteElement.cpp"
 
+#include "FiniteElement.cpp"
 
 #endif // _FEM_H_
 
