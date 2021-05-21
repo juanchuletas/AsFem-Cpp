@@ -1,8 +1,8 @@
 #include "math_modules.hpp"
-void poissonSolver(double *hartree_vec,double *sij,double *lij,double *rho,int Ne,int order,int phase,double *b,double hp)
+void poissonSolver(double *hartree_vec,double *uij,double *lij,double *rho,int pnodes,double *b,double hp)
 {
-	int nodes = Ne*order + 1;
-	int r_nodes = nodes-2;
+	
+	int r_nodes = pnodes;
 	int totSize = r_nodes*r_nodes;
 	int N=r_nodes;
 	int NRHS=1;
@@ -14,23 +14,23 @@ void poissonSolver(double *hartree_vec,double *sij,double *lij,double *rho,int N
 	double sum=0.0;
 	double coeffwfn,coeffrho;
 	const double PI = 3.14159265358979323846;
-
+  //double *right_vec = new double[r_nodes];
 	//LOCAL ARRAYS:
     double *right_vec = new double[r_nodes];
     double *aux_vec = new double[r_nodes];
-    double *aux_mat = new double[totSize];
-	
-
-	ScalarXMatrix(1.0,lij,aux_mat,r_nodes,r_nodes);
+    double *aux_mat = new double[r_nodes*r_nodes];
 		
-
-	MatrixProduct(sij,rho,right_vec,r_nodes,r_nodes,NRHS);
+  ScalarXMatrix(1.0,lij,aux_mat,r_nodes,r_nodes);
+		
+  
+	MatrixProduct(uij,rho,right_vec,r_nodes,r_nodes,NRHS);
+  
 	 //MatXvec(sij,rho,right_vec,r_nodes);
 	//double qtot = 0.0;
 	for(int i=0; i<r_nodes; i++){
-		aux_vec[i] = right_vec[i]  - b[i]*hp;
+		aux_vec[i] = right_vec[i] - b[i]*hp;
 		//qtot  = qtot + right_vec[i];
-		//printf("f = %lf\n",rho[i]);
+		//printf("bvec[%d] = %lf\n",i,b[i]);
 	}
 	//printf("THE SUM IS: %lf\n",qtot);
 
@@ -50,10 +50,10 @@ void poissonSolver(double *hartree_vec,double *sij,double *lij,double *rho,int N
 	for(int i=0; i<r_nodes; i++)
 	{
 		hartree_vec[i] = aux_vec[i];
-	        //printf("HP[%d] = % lf\n",i,aux_vec[i]);
+	  //printf("HP[%d] = % lf\n",i,aux_vec[i]);
 	}
 
-	delete [] aux_mat;
+	  delete [] aux_mat;
     delete [] right_vec;
     delete [] aux_vec;
 

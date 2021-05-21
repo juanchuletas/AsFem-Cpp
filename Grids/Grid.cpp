@@ -35,8 +35,6 @@ Grid<T>::Grid(double rinit,double rfinal,int inNe, int inOrder,std::string inTyp
     printf("Elment size: %d\n",elSize.getSize());
 
 }
-
-
 template<class T>
 Grid<T>::~Grid(){
 
@@ -71,25 +69,90 @@ void Grid<T>::createGrid(std::string name)
     }
 }
 template<class T>
-void Grid<T>::forceInsertion(double cutRad){
+int Grid<T>::forcedInsertion(double cutRad){
     //Only working for Froese-Fischer Grid
     std::cout<<"Force Insertion Module\n";
-    
+    /* double target;
+    int index;
+    for(int i=0; i<this->size(); i++){
+        index = i;
+        target = grid[i];
+        if(cutRad<target){
+            if(index%2!=0){
+                index++;
+                grid[index] = cutRad;
+                target = grid[index];
+            }
+            else{
+                grid[i] = cutRad;
+            }
+            break;
+        }
+    } */
+    //printf("DELETED ITEM: %lf IN POSITION %d\n",target,index);
     double rcPoints  = grid_tools::froese_fischer::inverseKernel(cutRad,atomicN);
-    int points = floor(rcPoints);
-    if(points%2==0){
-        points = points - 1;
+    int index = floor(rcPoints);
+    std::cout<<"inverse value: "<<rcPoints<<std::endl;
+    //nt points = index;
+    switch (order)
+    {
+    case 2:
+            if(index%2==0){
+                //index = index+2;
+                grid[index] = cutRad;
+            }
+            else{
+                index = index+1;
+                grid[index] = cutRad;
+            }
+        break;
+    case 3:
+            if(index%order!=0){
+                if(index%2==0){
+                    index++;
+                }
+                else{
+                    index--;
+                }
+                grid[index] = cutRad;
+            }
+            else{
+                grid[index] = cutRad;
+            }
+        break;
     }
-    int numOfEl = (points-2)/order;
-    int poiss_nodes = numOfEl*order+1;
-    grid[points] = cutRad;
-    std::cout<<"Index of the Rc in the grid: "<<points<<std::endl;
-    std::cout<<"Poisson equation elements: "<<numOfEl<<std::endl;
-    std::cout<<"Poisson equation total points: "<<poiss_nodes<<std::endl;
-    std::cout<<"Poisson equation bc points: "<<poiss_nodes-2<<std::endl;
-    std::cout<<"Otherwise equation size: "<<Ne-numOfEl<<std::endl;
+    int points = index;
+    printf("RC index = %d\n",points);
+    printf("Elements at RC = %d\n",(points-1)/order);
+    int poiss_tot_nodes = points+1;
+    int poiss_bc = poiss_tot_nodes-2;
+    std::cout<<"Poisson equation total points: "<<index+1<<std::endl;
+    std::cout<<"Poisson equation with BC points: "<<poiss_bc<<std::endl;
 
 
+    return points;
+}
+template<class T>
+void Grid<T>::refineNear(int point, double delta, int steps){
+    int index = point;
+    int target = (index-1)/order;
+    std::cout<<"Refining: "<<steps<<" steps before and after: "<<index<<std::endl;
+    for(int i=-steps; i<=steps; i++){
+        int j=index+i;
+        //double h = grid[j]-grid[j-1];
+       // double new_h = h/5.0;
+        printf("grid[%d] = %lf\n",j,grid[j]);
+        grid[j] = grid[index] + delta*i;
+        printf("grid[%d] = %lf\n",j,grid[j]);
+        /* printf("grid[%d] = %lf + %lf\n",j,grid[j],new_h);
+        if(i==0){
+            grid[j] = grid[j] + new_h*0.0;
+        }
+        else{
+            grid[j] = grid[j] - delta*i;
+        }
+        printf("grid[%d] = %lf\n",j,grid[j]) */;
+    }
 }
 template<class T>
 void Grid<T>::buildChebyshev(){
@@ -166,13 +229,10 @@ void Grid<T>::buildAtomic(int atomicN){
 template<class T>
 void Grid<T>::buildAtomic(int atomicN, std::string name){
     int totnodes = Ne*order+1;
-    double rmf = 5.0;
-    double hmf = 1.0/24.0;
+    
     double ri,f_r1,f_r2;
     double nucleii = static_cast<double>(atomicN);
-    printf("From build atomic totpoints = %d\n",totnodes);
-    /* double rmin = FroeseFischer(0,atomicN,rmf,hmf);
-    double rmax = FroeseFischer(totnodes,atomicN,rmf,hmf); */
+   
 
     double rmin  = grid_tools::froese_fischer::kernel(0,nucleii);
     double rmax  = grid_tools::froese_fischer::kernel(totnodes,nucleii);
@@ -183,7 +243,8 @@ void Grid<T>::buildAtomic(int atomicN, std::string name){
     {
         //ri = FroeseFischer(i,atomicN,rmf,hmf);
         ri = grid_tools::froese_fischer::kernel(i,nucleii);
-        grid[i] = f_r1*ri + f_r2;
+        //grid[i] = f_r1*ri + f_r2; 
+        grid[i] = ri;
         //printf("Vertex value x[%d] = %lf\n",i,x[i]);
     }
     grid[0] = 0.f;
@@ -205,7 +266,6 @@ void Grid<T>::setGridData(double rinit, double rfinal,int inNe, int inorder,std:
     order = inorder; meshType = inmeshType;
     atomicN = inatomicN;
     totalNodes = Ne*order+1;
-    printf("set grid data totalnodes = %d\n",totalNodes);
     bcNodes= totalNodes-2;
     polynomial = order+1;
     grid.setMatrix(totalNodes);

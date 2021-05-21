@@ -37,7 +37,8 @@ template<class T> class Grid {
         void buildAtomic(int amtomicN);
         void buildAtomic(int atomicN, std::string name);
         void buildChebyshev();
-        void forceInsertion(double cutVal);
+        int forcedInsertion(double cutVal);
+        void refineNear(int points, double delta, int steps);
         T& getElementSize(int i);
         T& getGridItem(int i);
         int size();
