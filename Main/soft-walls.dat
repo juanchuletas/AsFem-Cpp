@@ -1,0 +1,13 @@
+FEM Model: Fixed-Points
+Order: 2
+Atomic Model: Confined
+Confinement: Soft-Walls
+Wall Value: 20.0
+Rc: 1.0
+Atom: He
+Multiplicity: Singlet
+Charge: 0
+Angular Momentum: 0
+Rinfty: 250.0
+Kind Of Mesh: Froese-Fischer
+

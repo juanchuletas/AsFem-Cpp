@@ -1,0 +1,10 @@
+FEM Model: Fixed-Elements
+Number Of Elements: 100
+Order: 2
+Atomic Model: Free-Atom
+Atom: He
+Charge: 0
+Angular Momentum: 0
+Rinfty: 200.0
+Kind Of Mesh: Froese-Fischer
+

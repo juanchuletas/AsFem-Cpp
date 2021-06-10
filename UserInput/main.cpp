@@ -1,23 +1,41 @@
 #include<iostream>
 #include<string>
-//#include "UserInputData.cpp"
-
-extern int read_data(char *input_name[],std::string &potential,std::string &atom, int &angular,int &Ne, double &r0, double &rc,int &order, std::string &mesh,double &lambda)
-;
+#include "UserInputData.hpp"
 int main (int argc, char **argv){
 
-    std::string atom,potential,mesh;
-    int angular,Ne,order;
-    double r0, rN,lambda = 0.0;
-    int flag = read_data(argv,potential,atom,angular,Ne, r0,rN,order,mesh,lambda);
+    std::string atomSym,meshType,atomicModel,femModel,confType, integrals;
+    int angular,Ne,order,charge;
+    double r0, rN,lambda, rC,wallValue;
+    int flag = read_data(argv,femModel,Ne, order, atomicModel,confType,rC,wallValue,lambda,charge,atomSym,angular,r0,rN,meshType,integrals);
     std::cout<<"Your initial data:"<<std::endl;
-    std::cout<<"Potential: "<<potential<<std::endl;
-    if(potential=="Atomic-Screened"){
-        std::cout<<"Lambda value: "<<lambda<<std::endl;
+    std::cout<<"FEM Model: "<<femModel<<std::endl;
+    if(femModel=="Fixed-Elements"){
+        std::cout<<"Number of Elements: "<<Ne<<std::endl;
     }
-    std::cout<<"Atom: "<<atom<<std::endl;
-    std::cout<<"Angular Momentum (l): "<<angular<<std::endl;
-    std::cout<<"Mesh: "<<mesh<<std::endl;
+    std::cout<<"Order: "<<order<<std::endl;
+    std::cout<<"Atomic Model: "<<atomicModel<<std::endl;
+    if(atomicModel=="Confined"){
+        if(confType=="Soft-Walls"){
+            std::cout<<"Confinement: "<<confType<<std::endl;
+            std::cout<<"Wall Value: "<<wallValue<<std::endl;
+            std::cout<<"Rc: "<<rC<<std::endl;
+        }
+        else{
+            std::cout<<"Confinement: "<<confType<<std::endl;
+            std::cout<<"Rc: "<<rC<<std::endl;
+        }
+        
+    }
+    else if(atomicModel=="Plasma"){
+        std::cout<<"Lambda Value: "<<lambda<<std::endl;
+        
+    }
+    std::cout<<"Atom: "<<atomSym<<std::endl;
+    std::cout<<"Charge: "<<charge<<std::endl;
+    std::cout<<"Angular Momentum: "<<angular<<std::endl;
+    std::cout<<"rInfty: "<<rN<<std::endl;
+
+    std::cout<<"Mesh: "<<meshType<<std::endl;
 
 
 

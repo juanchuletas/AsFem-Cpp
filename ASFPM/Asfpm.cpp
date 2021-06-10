@@ -4,7 +4,7 @@
 ASFPM::ASFPM(){
 }
 ASFPM::ASFPM(std::string femModel, int Ne, int order,std::string _atomicModel, double _lambda,std::string _confType,double _Rc,double _wallVal,int _atomicN, int _charge,int _angular, std::string gridType,double rInfty,std::string _integrals)
-:FEM{Ne,order,femModel, gridType},r0{0.0},rN{rInfty},atomicN{_atomicN},atomicModel{_atomicModel},integrationScheme{_integrals},wallValue{_wallVal},
+:FEMFP{Ne,order,femModel, gridType},r0{0.0},rN{rInfty},atomicN{_atomicN},atomicModel{_atomicModel},integrationScheme{_integrals},wallValue{_wallVal},
 cutRad{_Rc},lambda{_lambda},charge{_charge},angular{_angular}{
     std::cout<<"ASFEM constructor 1.\n";
     total_nodes = Ne*order+1;
@@ -19,7 +19,7 @@ cutRad{_Rc},lambda{_lambda},charge{_charge},angular{_angular}{
 
 }
 ASFPM::ASFPM(int _Ne, int _order,std::string _grid,int _atomicN,int _charge, int _angular,double _rN)// Pretty good constructor
-: FEM{_Ne,_order,"Fixed-Points",_grid},r0{0.0},atomicN{_atomicN},charge{_charge},angular{_angular},rN{_rN}{
+: FEMFP{_Ne,_order,"Fixed-Points",_grid},r0{0.0},atomicN{_atomicN},charge{_charge},angular{_angular},rN{_rN}{
     total_nodes = globalSize;
     fem_nodes = bcSize;
     wfn = new double[fem_nodes*fem_nodes];

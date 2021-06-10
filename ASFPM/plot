@@ -1,0 +1,9 @@
+# Set the output to a png file
+set terminal png size 600,600
+# The file we'll write to
+set output 'dens.png'
+# The graphic title
+set title 'Hartree-Potential'
+#plot the graphic
+plot 'vhpot.dat' u 1:2 w lp pt 7 ps 0.4 lc rgb "#FF3D00"
+

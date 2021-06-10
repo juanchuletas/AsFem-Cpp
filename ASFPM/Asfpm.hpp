@@ -1,11 +1,11 @@
 #if !defined(_ASFPM_H_)
 #define _ASFPM_H_
-#include "../FEM/FiniteElement.hpp"
+#include "../FEM_FP/FiniteElementFixedPoints.hpp"
 #include "../Tools/external_potential.hpp"
-//#include "../Tools/math_tools.hpp"
 #include "../Tools/matrices_operations.hpp"
 #include "../Tools/math_modules.hpp"
-class ASFPM : public FEM {
+
+class ASFPM : public FEMFP {
 
     //This class performs the Finite Elemennt Method for Atomic Structure under the 
     // Fixed Points Model
