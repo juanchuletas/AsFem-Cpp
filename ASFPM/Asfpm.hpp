@@ -1,6 +1,6 @@
 #if !defined(_ASFPM_H_)
 #define _ASFPM_H_
-#include "../FEM_FP/FiniteElementFixedPoints.hpp"
+#include "../FEM_FP/FiniteElementFixedPoints.hpp" //Only add the 
 #include "../Tools/external_potential.hpp"
 #include "../Tools/matrices_operations.hpp"
 #include "../Tools/math_modules.hpp"
