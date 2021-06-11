@@ -33,7 +33,8 @@ int main (){
     }
     foo(&grid[0],grid.getSize());
     //Matrix<double> = arr{1,2,3};
-    //printf("%lf\n",nodes[21]);
+    //printf("%lf\n",nodes[-1]);
+
 
 
     return 0;
