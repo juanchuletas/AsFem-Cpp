@@ -1,15 +1,22 @@
 #include<iostream>
 #include<cmath>
-//#include "../ASFEM_FIXED_POINTS/asfemfp.hpp"
 #include "../ASFPM/Asfpm.hpp"
 #include "../UserInput/UserInputData.hpp"
 #include "../Tools/searchelements.hpp"
-//#include "../Static/grid_tools.hpp"
 #define MIN_REQUIRED 2
 
 
 
+int setNumberOfElements(double rN, int atomicN,int order){
+    double totpoints = grid_tools::froese_fischer::inverseKernel(rN,atomicN);
+    int points = floor(totpoints);
+    if(points%2==0){
+        points = points - 1;
+    }
+    int Ne = (points-1)/order;
 
+    return Ne;
+}
 int help() {
    printf("Usage: asfem.exe [-s ] [-n ] [-true]\n");
    printf("\t-s: a string a\n");
@@ -27,26 +34,44 @@ int main(int argc, char **argv){
     grid_tools::froese_fischer::rmf = 5.0;
     grid_tools::froese_fischer::hmf = 1.0/24.0;
     if(argc<MIN_REQUIRED){
-        std::cout<<"YOU NEED AN INPUT FILE"<<std::endl;
+        std::cout<<"IDIOT, YOU NEED AN INPUT FILE"<<std::endl;
         return help();
     }
     else{
         int flag = read_data(argv,femModel,Ne, order, atomicModel,confType,rC,wallValue,lambda,charge,atomSym,multi,angular,r0,rN,meshType,integrals);
         int atomicN = getAtomicNumber(atomSym);
-        double totpoints = grid_tools::froese_fischer::inverseKernel(rN,atomicN);
-        int points = floor(totpoints);
-        if(points%2==0){
-            points = points - 1;
-        }
-        Ne = (points-1)/order;
-        
-        // HERE COMES THE CONSTRUCTOR
+        Ne = setNumberOfElements(rN,atomicN, order); 
 
-        // Asfemfp myAsfem{};
+        ASFPM asfpm{Ne,order,meshType,atomicN,charge,angular,rN};
+        if(atomicModel=="Free" || atomicModel=="free"){
+            asfpm.setData(atomicModel);
+        }
+        else{
+            asfpm.setData(atomicModel,rC, wallValue);
+            
+        }
+        asfpm.load(); //Assamble all the neccesary fem matrices
+        asfpm.singleDiagonalization(); 
+        //double *orb = asfpm.getOrbitals(allOccupied);     
         /*
-        
+            asfpm.singleDiag(); 
+            double *wfn = asfpm.getWfn(full);
+            double *eigenValue = asfpm.getEigenvalues(10); 
+
+            getDensity(wfn,dens,occOrb,fenodes);
+            computeHartreePotential(dens); 
+            asfpm.addElectronElecron(hpot);
+            asfpm.getExchangeDens(wfn); 
+            if(multiplicity==singlet){
+                electronicStructure::closedShell::solveHartreeFock(fij);  
+            }
+            else{
+                electronicStructure::openShell::solveHartreeFock();
+            }
         
         */
+        
+      
         
         printUsrData(femModel,Ne, order, atomicModel,confType,rC,wallValue,lambda,charge,atomSym,multi,angular,r0,rN,meshType,integrals);
        

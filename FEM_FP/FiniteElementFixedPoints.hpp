@@ -31,6 +31,7 @@ class FEMFP {
     private:
         void buildLinkMAtrix();
         void applyBoundaryConditions();
+        void divideOverGridPoints(double *inVector);
         void reduceMatrix(double *, Matrix<double> &mat, int size);
         void reduceMatrix(double *matG, double *mat,int size);
         void reduceMatrix(double *matG, double *mat,int sized,int pts);
@@ -41,7 +42,7 @@ class FEMFP {
         FEMFP(int _Ne, int _order, std::string _femModel, std::string _gridName);
         ~FEMFP();
         void assambleMatricesFixedPoints(int atomicN); 
-        void assambleMatricesFixedPoints(double *pot, int atomicN,int points); //Only for special ocations 
+        void assambleMatricesFixedPoints(int atomicN,int points); //Only for special ocations 
         void fixedPointsNumIntegration(double *mat, double *vec);//Full numeric integration with no equal spaced elements
         void buildFemGrid(int atomicN,double r0,double rN); //Working
         // POISSON SOLVER

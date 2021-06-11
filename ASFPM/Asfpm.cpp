@@ -3,23 +3,9 @@
 
 ASFPM::ASFPM(){
 }
-ASFPM::ASFPM(std::string femModel, int Ne, int order,std::string _atomicModel, double _lambda,std::string _confType,double _Rc,double _wallVal,int _atomicN, int _charge,int _angular, std::string gridType,double rInfty,std::string _integrals)
-:FEMFP{Ne,order,femModel, gridType},r0{0.0},rN{rInfty},atomicN{_atomicN},atomicModel{_atomicModel},integrationScheme{_integrals},wallValue{_wallVal},
-cutRad{_Rc},lambda{_lambda},charge{_charge},angular{_angular}{
-    std::cout<<"ASFEM constructor 1.\n";
-    total_nodes = Ne*order+1;
-    fem_nodes = total_nodes-2;
-    numElectrons = atomicN-charge;
-    totQ = numElectrons;
-    occOrb = atomicN/2;
-    wfn = new double[bcSize*bcSize];
-    eigenVal = new double[bcSize];
-    rho = new double[bcSize];
-    
-
-}
 ASFPM::ASFPM(int _Ne, int _order,std::string _grid,int _atomicN,int _charge, int _angular,double _rN)// Pretty good constructor
 : FEMFP{_Ne,_order,"Fixed-Points",_grid},r0{0.0},atomicN{_atomicN},charge{_charge},angular{_angular},rN{_rN}{
+    std::cout<<"ASFEM constructor 1.\n";
     total_nodes = globalSize;
     fem_nodes = bcSize;
     wfn = new double[fem_nodes*fem_nodes];
@@ -35,7 +21,7 @@ ASFPM::~ASFPM(){
     delete [] vr;
 }
 // SOME SETTERS AND GETTERS
-void ASFPM::setData(std::string _atomicModel){//Free-Atom Setter0
+void ASFPM::setData(std::string _atomicModel){//Free-Atom Setter
     atomicModel = _atomicModel;
     occOrb = atomicN/2;
     numElectrons = atomicN-charge;
@@ -84,6 +70,17 @@ void ASFPM::wfnNormalization(){
     delete [] cf;
     delete [] feMatS;
 }
+double *ASFPM::getOrbitals(int numofOrb){
+    
+    double *orbitals = new double[numofOrb*bcSize];
+    int k=0;
+    for(int i=0; i<numofOrb; i++){
+        for(int j=0; j<bcSize; j++){
+            orbitals[k] = wfn[i*bcSize + j];
+        }
+    }
+    return orbitals;
+}
 double ASFPM::computeTotalCharge(int rcIndex){
     int nele = (rcIndex-1)/order;
     nele = nele + 1;
@@ -92,7 +89,6 @@ double ASFPM::computeTotalCharge(int rcIndex){
     totrho[total_nodes-1] = 0.0;
     double x[poly],phi[poly];
     double *feMatS;
-    
     for(int i=1; i<fem_nodes+1; i++){
         totrho[i] = wfn[i-1];
         //printf("cf = %lf\n",cf[i]);
@@ -105,8 +101,6 @@ double ASFPM::computeTotalCharge(int rcIndex){
                 int i = linkMat[indx];
                 x[j] = femgrid[i];
                 phi[j] = totrho[i];
-                //printf("x[%d] = %lf    rho[%d] = %lf\n",j,femgrid[i],j,totrho[i]);
-
             }
             feMatS = getFixedPointsOverlapMatrices(x,order);
             double qtot = 0.0;
@@ -123,20 +117,13 @@ double ASFPM::computeTotalCharge(int rcIndex){
     delete [] feMatS;
     return finalq;
 }
-void ASFPM::getDensity(){
-    if(numElectrons!=1){
-        for(int i=0; i<bcSize; i++){
-            rho[i] = 0.0;
-            for(int orb=0; orb<occOrb; orb++){
-                rho[i] += wfn[i + orb*bcSize]*wfn[i + orb*bcSize];
-                rho[i] = 2.0*rho[i];
-            }
-        }
-    }
-    else{//This is the density for the Hidrogen like Atoms;
-        int orb=0;
-        for(int i=0; i<bcSize; i++){
-            rho[i] = wfn[i + orb*bcSize]*wfn[i+orb*bcSize];
+void ASFPM::getDensity(const double occup=2.0){
+
+    for(int i=0; i<bcSize; i++){
+        rho[i] = 0.0;
+        for(int orb=0; orb<occOrb; orb++){
+            rho[i] += wfn[i + orb*bcSize]*wfn[i + orb*bcSize];
+            rho[i] = occup*rho[i];
         }
     }
 }
@@ -161,6 +148,16 @@ double * ASFPM::computeHartreePotential(double *hpot){
     }
     vh_r[0]=doInterpolation(&femgrid[0],vh_r,2);
     vh_r[total_nodes-1]=totQ/femgrid[total_nodes-1];
+    return vh_r;
+}
+double * ASFPM::computeExchangePotential(double *hpot){
+    double *vh_r = new double[total_nodes];
+
+    for(int i=0; i<bcSize; i++){
+        vh_r[i+1]= hpot[i]/femgrid[i+1];
+    }
+    vh_r[0]=doInterpolation(&femgrid[0],vh_r,2);
+    vh_r[total_nodes-1]=0.0;
     return vh_r;
 }
 double * ASFPM::computeHartreePotential(double *hpot,int rcIndex){
@@ -189,7 +186,32 @@ double ASFPM::energyHF(double *hij, double *fij,double *densMat){
     return 0.5*energy;
 
 }
-
+void ASFPM::singleDiagonalization(){
+    std::cout<<"Single Diagonalization"<<std::endl;
+    double *hij = new double[bcSize*bcSize];
+    FillZeroMat(hij,bcSize,bcSize);
+    SumMatrices(&vij[0],&kij[0],hij,bcSize*bcSize);
+    diag(bcSize,hij,&sij[0],eigenVal,wfn);
+    printf("Lowest Occupied Orbital Energy: %.10lf\n",0.5*eigenVal[0]);
+    delete [] hij;
+}
+void ASFPM::load(){
+    //Create the fem grid:
+    buildFemGrid(atomicN,r0,rN);
+    if(atomicModel=="Soft-Walls"){
+        int poiss_tot_nodes,pnodes;
+        int rcIndex = femgrid.forcedInsertion(cutRad);
+        femgrid.refineNear(rcIndex,0.001,8);
+        poiss_tot_nodes = rcIndex+1;
+        pnodes = poiss_tot_nodes-2;
+        assambleMatricesFixedPoints(atomicN,rcIndex);
+    }
+    else{
+        assambleMatricesFixedPoints(atomicN);
+        //Hard-Walls and Free atomis
+    }
+    
+}
 //*** METHODS TO START THE PROGRAM *********
 
 void ASFPM::startProgram(){
@@ -224,7 +246,7 @@ void ASFPM::startProgram(){
             int poiss_tot_nodes = rcIndex+1;
             int pnodes = poiss_tot_nodes-2;
             //printf("Boundary Condition points for poisson: %d\n",pnodes);
-            assambleMatricesFixedPoints(vr,atomicN,rcIndex);// Must be modified 
+            assambleMatricesFixedPoints(atomicN,rcIndex);// Must be modified 
             //assambleMatricesFixedPoints(atomicN);
             SumMatrices(&vij[0],&kij[0],hij,bcSize*bcSize);
             diag(bcSize,hij,&sij[0],eigenVal,wfn);

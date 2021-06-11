@@ -33,7 +33,67 @@ FEMFP::~FEMFP(){
     delete [] bvec;
 }
 //***** Methods ***********
+void FEMFP::divideOverGridPoints(double *inVector){
+    for(int i=0; i<bcSize; i++){
+        inVector[i] = inVector[i]/femgrid[i];
+    }
+    
+}
+void FEMFP::extractBCvector(double *l_mat,int nodes){
+     for(int j=1; j<(nodes-1); j++)
+        {
+                bvec[j-1] = l_mat[j + (j+1)*(nodes-1)];
 
+        }
+
+}
+void FEMFP::extractBCvector(double *l_mat,double *bcVec,int nodes){
+     for(int j=1; j<(nodes-1); j++)
+        {
+                bcVec[j-1] = l_mat[j + (j+1)*(nodes-1)];
+
+        }
+
+}
+void FEMFP::reduceMatrix(double *matG, double *mat,int pts){
+    int l=0;
+    int n = globalSize; //Global Size for poisson problem
+    for(int i=1;i<n-pts;i++)
+    {
+        for(int j=1;j<n-pts;j++)
+        {
+            mat[l] = matG[i*n+j]; //Overlap matrix
+            l++;
+        }
+    }
+
+}
+void FEMFP::reduceMatrix(double *matG, double *mat,int sized,int pts){
+    int l=0;
+    int n = sized; //Global Size for poisson problem
+    for(int i=1;i<n-pts;i++)
+    {
+        for(int j=1;j<n-pts;j++)
+        {
+            mat[l] = matG[i*n+j]; //Overlap matrix
+            l++;
+        }
+    }
+
+}
+void FEMFP::reduceMatrix(double *matG, Matrix<double> &mat,int pts){
+    int l=0;
+    int n = globalSize; //Global Size for poisson problem
+    for(int i=1;i<n-pts;i++)
+    {
+        for(int j=1;j<n-pts;j++)
+        {
+            mat[l] = matG[i*n+j]; //Overlap matrix
+            l++;
+        }
+    }
+
+}
 void FEMFP::buildLinkMAtrix(){
     for(int i=0; i<Ne; i++)
         {
@@ -46,7 +106,76 @@ void FEMFP::buildLinkMAtrix(){
 void FEMFP::buildFemGrid(int atomicN,double r0,double rN){
 
     femgrid.setGridData(r0, rN, Ne, order,gridType, atomicN);
-    femgrid.createGrid(femModel);
+    femgrid.createGrid(femModel);//Check later!!!!
+}
+void FEMFP::assambleMatricesFixedPoints(int atomicN,int points){
+    int nele = (points-1)/order;
+    //FOR THE FIXED POINTS MODEL AND EXACT EXTERNAl POTENTIAL INTEGRATION
+    double *s_matG = new double[globalSize*globalSize];
+    double *k_matG = new double[globalSize*globalSize];
+    double *v_matG = new double[globalSize*globalSize];
+    FillZeroMat(v_matG,globalSize,globalSize);
+    FillZeroMat(s_matG,globalSize,globalSize);
+    FillZeroMat(k_matG,globalSize,globalSize);
+
+    //**** ELEMENTAL MATRICES ***************
+    double *feMatS{nullptr};
+    double *feMatK{nullptr}; //This memory will be allocated by the function ;
+    double *feMatV{nullptr};
+    double x[poly]; //This method needs the points in the grid
+    for(int ei=0; ei<Ne; ei++){
+        //printf("e = %d\n",ei);
+        for(int j=0; j<poly; j++){
+            int indx = poly*ei + j; 
+            int i = linkMat[indx];
+            x[j] = femgrid[i];
+        }
+        feMatS = getFixedPointsOverlapMatrices(x,order);
+        feMatK = getFixedPointsKinectMatrices(x,order);
+        feMatV = getFixedPointsAnaliticVr(x,order,atomicN);
+        //if(x[])
+        //printf("[0] = %lf\n",feMatV[0]);
+        for(int nu=0; nu<poly; nu++){
+            int index_nu = poly*ei + nu; 
+            int l = linkMat[index_nu];
+            for(int mu=0; mu<poly; mu++){
+
+                int index_mu = poly*ei+mu;
+                int m = linkMat[index_mu];
+                s_matG[l*globalSize+m] += feMatS[poly*nu+mu];
+                k_matG[l*globalSize+m] += feMatK[poly*nu+mu];
+                //v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
+                //printf("v_matG[%d] = %lf + %lf = %lf\n",l*globalSize+m, v_matG[l*globalSize+m],feMatV[poly*nu+mu],v_matG[l*globalSize+m]);
+                 if(ei<=nele){
+                    v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
+                    //printf("Vij[%d] = %lf\n",poly*nu+mu, v_matG[l*globalSize+m]);
+
+                }else{
+                    v_matG[l*globalSize+m] += 0.0*feMatS[poly*nu+mu];
+                    //printf("Vij[%d] = %lf\n",poly*nu+mu, v_matG[l*globalSize+m]);
+                }
+
+            }
+        }
+    }
+    extractBCvector(k_matG,globalSize);
+    //**** This part reduce the global matrices according to the 
+    // proper boundary conditions***********************
+    reduceMatrix(s_matG,sij,1); //it means that the last node will be deleted
+    reduceMatrix(k_matG,kij,1);
+    reduceMatrix(v_matG,vij,1);
+    //sij.printMatrix();
+    
+    //**********************************************************
+
+    // FREE ALL THE SHIT ALLOCATED ABOVE
+    delete [] feMatS;
+    delete [] feMatK;
+    delete [] feMatV;
+    delete [] s_matG;
+    delete [] k_matG;
+    delete [] v_matG;
+    
 }
 void FEMFP::assambleMatricesFixedPoints(int atomicN){
     //FOR THE FIXED POINTS MODEL AND EXACT EXTERNAl POTENTIAL INTEGRATION

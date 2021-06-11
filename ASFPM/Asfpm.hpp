@@ -4,8 +4,9 @@
 #include "../Tools/external_potential.hpp"
 #include "../Tools/matrices_operations.hpp"
 #include "../Tools/math_modules.hpp"
-
-class ASFPM : public FEMFP {
+#include "../ElectronicStructure/ElectronicStructure.hpp"
+    
+class ASFPM : public FEMFP{
 
     //This class performs the Finite Elemennt Method for Atomic Structure under the 
     // Fixed Points Model
@@ -29,13 +30,13 @@ class ASFPM : public FEMFP {
     //Matrix<double> sij, vij, kij;
     //double *uij{nullptr}, *lij{nullptr}; //Only when the poisson problem has a different size 
     //Private Methods
-    void getDensity();
+    void getDensity(const double ocupation);
     void getExternalPotential(); //get the -z/r
     void performSCF();
     double* computeHartreePotential(double *hpot);
+    double* computeExchangePotential(double *xpot);
     double* computeHartreePotential(double *hpot,int rcIndex);
     void getExternalPotentialMatrix();
-    void singleDiagonalization();
     void wfnNormalization();
     void getDensityMatrix(double *densMat);
     double energyHF(double *hij, double *fij,double *densMat);
@@ -44,12 +45,14 @@ class ASFPM : public FEMFP {
 
     public:
         ASFPM();
-        ASFPM(std::string femModel, int Ne, int order,std::string _atomicModel, double _lambda,std::string _confType,double _Rc,double _wallVal,int _atomicN, int _charge,int _angular, std::string gridType,double rInfty,std::string _integrals);
         ASFPM(int _Ne, int _order,std::string _grid,int _atomicN,int _charge, int _angular,double _rN);
         ~ASFPM();
         void setData(std::string _atomicmodel);
         void setData(std::string _atomicmodel, double _rc, double _wall);
         void startProgram(); //Runs the program
+        void load();
+        void singleDiagonalization();
+        double *getOrbitals(int numOfOrb);
 
 };
 double integrateElement(int ei,int order,double *feMatS, int *link_mat, double coeff, double *cf);
