@@ -31,6 +31,7 @@ class ASFPM : public FEMFP{
     //double *uij{nullptr}, *lij{nullptr}; //Only when the poisson problem has a different size 
     //Private Methods
     void getDensity(const double ocupation);
+    void getExchangeDens(double *rox, int a, int b);
     void getExternalPotential(); //get the -z/r
     void performSCF();
     double* computeHartreePotential(double *hpot);

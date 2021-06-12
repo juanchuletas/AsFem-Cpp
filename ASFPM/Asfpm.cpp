@@ -11,14 +11,14 @@ ASFPM::ASFPM(int _Ne, int _order,std::string _grid,int _atomicN,int _charge, int
     wfn = new double[fem_nodes*fem_nodes];
     eigenVal = new double[fem_nodes];
     rho = new double[fem_nodes];
-    vr = new double[total_nodes];
+    //vr = new double[total_nodes];
 }
 ASFPM::~ASFPM(){
 
     delete [] wfn;
     delete [] eigenVal;
     delete [] rho;
-    delete [] vr;
+   // delete [] vr;
 }
 // SOME SETTERS AND GETTERS
 void ASFPM::setData(std::string _atomicModel){//Free-Atom Setter
@@ -125,6 +125,12 @@ void ASFPM::getDensity(const double occup=2.0){
             rho[i] += wfn[i + orb*bcSize]*wfn[i + orb*bcSize];
             rho[i] = occup*rho[i];
         }
+    }
+}
+void ASFPM::getExchangeDens(double *rhox,int orb_a,int orb_b){
+    for(int i=0; i<bcSize; i++){
+        rhox[i] = 0.0;
+        rhox[i] = wfn[orb_a*bcSize + i]*wfn[orb_b*bcSize + i];
     }
 }
 void ASFPM::getDensityMatrix(double *densMat){ //May be implemented in the Atomic Structure Static Class

@@ -36,8 +36,7 @@ FEMFP::~FEMFP(){
 void FEMFP::divideOverGridPoints(double *inVector){
     for(int i=0; i<bcSize; i++){
         inVector[i] = inVector[i]/femgrid[i];
-    }
-    
+    }  
 }
 void FEMFP::extractBCvector(double *l_mat,int nodes){
      for(int j=1; j<(nodes-1); j++)
