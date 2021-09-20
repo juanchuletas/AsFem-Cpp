@@ -1,30 +1,56 @@
 #include "ElectronicStructure.hpp"
 
 
+namespace electronicStructure{
 
-ElectronicStructure::ElectronicStructure(){
-    
+    //Constructors: ******************
+    closedShell::closedShell()
+    :nucleii{0},charge{0},bcnodes{0},
+        gridnodes{0},orbitals{0},numElectrons{0}{
+
+    }
+    closedShell::closedShell(int _nuc,int _char)
+    :nucleii{_nuc},charge{_char}
+    {
+        std::cout<<"Closed-Shell Constructor\n";
+        numElectrons = nucleii-charge;
+        orbitals  = numElectrons/2;
+    }
+    // DESTRUCTOR:
+    closedShell::~closedShell(){
+    }
+    //******************************************
+     //Closed Shell Methods:***********************
+    void closedShell::setNumOfGridPoints(int _gridPoints){
+        gridnodes = _gridPoints;
+        bcnodes = _gridPoints-2;
+    }
+    void closedShell::computeDensityMatrix(double *densMat,double *wfn){
+        int k=0; 
+        for(int i=0; i<bcnodes; i++){
+            for(int j=0; j<bcnodes; j++){
+                densMat[k] = 0.0;
+                for(int orb=0; orb<orbitals; orb++){
+                    densMat[k] += 2.0*(wfn[i + orb*bcnodes]*wfn[j + orb*bcnodes]);
+                }
+                k++; 
+
+            }
+        }
+    }
+    double closedShell::solveHartreeFock(double *fij, double *hij, double *densmat){
+        double energy;
+        for(int i=0; i<bcnodes*bcnodes; i++){
+            energy = energy + 0.5*(densmat[i]*hij[i]);
+            energy = energy + 0.5*(densmat[i]*fij[i]);
+        }        
+        return 0.5*energy;
+    }
+
+
+
+
 }
-void ElectronicStructure::getExchangeDensity(double *rhox, double *wfn, int femBasis, int orb_a, int orb_b){
-    for(int i=0; i<femBasis; i++){
-        rhox[i] = 0.0;
-        rhox[i] = wfn[orb_a*femBasis + i]*wfn[orb_b*femBasis + i];
-    }
-    
-
-
-
-    /* void getDensity(double *rho, double *wfn, int fembasis,int occ=2.0){
-    }
-    namespace closedShell{
-
-
-    }
-    namespace openShell{
-
-
-    } */
-
 
 
 
