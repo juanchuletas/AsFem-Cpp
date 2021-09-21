@@ -48,6 +48,8 @@ class FEMFP {
         // POISSON SOLVER
         void solvePoissonEquation(double *hpot,double *rho_r,double hp); //Working! Don't touch
         void assamblePoissonMatrices(double *lij, double *uij,double *bcVec,int rcIndex);
+        int getDomainSize()const;
+        int getBCSize()const;
 };
 
 

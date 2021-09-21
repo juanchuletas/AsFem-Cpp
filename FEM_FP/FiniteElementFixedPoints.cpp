@@ -33,6 +33,12 @@ FEMFP::~FEMFP(){
     delete [] bvec;
 }
 //***** Methods ***********
+int FEMFP::getDomainSize() const{
+    return globalSize;
+}
+int FEMFP::getBCSize()const{
+    return bcSize;
+}
 void FEMFP::divideOverGridPoints(double *inVector){
     for(int i=0; i<bcSize; i++){
         inVector[i] = inVector[i]/femgrid[i];
@@ -109,6 +115,7 @@ void FEMFP::buildFemGrid(int atomicN,double r0,double rN){
 }
 void FEMFP::assambleMatricesFixedPoints(int atomicN,int points){
     int nele = (points-1)/order;
+    printf("NELE = %d\n",nele);
     //FOR THE FIXED POINTS MODEL AND EXACT EXTERNAl POTENTIAL INTEGRATION
     double *s_matG = new double[globalSize*globalSize];
     double *k_matG = new double[globalSize*globalSize];
@@ -181,12 +188,17 @@ void FEMFP::assambleMatricesFixedPoints(int atomicN){
     double *s_matG = new double[globalSize*globalSize];
     double *k_matG = new double[globalSize*globalSize];
     double *v_matG = new double[globalSize*globalSize];
+    FillZeroMat(v_matG,globalSize,globalSize);
+    FillZeroMat(s_matG,globalSize,globalSize);
+    FillZeroMat(k_matG,globalSize,globalSize);
     //**** ELEMENTAL MATRICES ***************
-    double *feMatS;
-    double *feMatK; //This memory will be allocated by the function ;
-    double *feMatV;
+    double *feMatS{nullptr};
+    double *feMatK{nullptr}; //This memory will be allocated by the function ;
+    double *feMatV{nullptr};
     double x[poly]; //This method needs the points in the grid
+    
     for(int ei=0; ei<Ne; ei++){
+        //printf("e = %d\n",ei);
         for(int j=0; j<poly; j++){
             int indx = poly*ei + j; 
             int i = linkMat[indx];
@@ -195,6 +207,7 @@ void FEMFP::assambleMatricesFixedPoints(int atomicN){
         feMatS = getFixedPointsOverlapMatrices(x,order);
         feMatK = getFixedPointsKinectMatrices(x,order);
         feMatV = getFixedPointsAnaliticVr(x,order,atomicN);
+        //if(x[])
         //printf("[0] = %lf\n",feMatV[0]);
         for(int nu=0; nu<poly; nu++){
             int index_nu = poly*ei + nu; 
@@ -205,11 +218,20 @@ void FEMFP::assambleMatricesFixedPoints(int atomicN){
                 int m = linkMat[index_mu];
                 s_matG[l*globalSize+m] += feMatS[poly*nu+mu];
                 k_matG[l*globalSize+m] += feMatK[poly*nu+mu];
-                v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
-                //printf("s_matG = %lf\n",s_matG[l*globalSize+m]);
+                //v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
+                //printf("v_matG[%d] = %lf + %lf = %lf\n",l*globalSize+m, v_matG[l*globalSize+m],feMatV[poly*nu+mu],v_matG[l*globalSize+m]);
+                 
+                    v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
+                    //printf("Vij[%d] = %lf\n",poly*nu+mu, v_matG[l*globalSize+m]);
+
+                
+
             }
         }
     }
+
+
+
     extractBCvector(k_matG,globalSize);
     
     reduceMatrix(s_matG,sij,1);
@@ -283,9 +305,9 @@ void FEMFP::solvePoissonEquation(double *hpot, double *rho_r,double hp){
 
     MatrixProduct(&sij[0],rho_r,right_vec,bcSize,bcSize,NRHS);
     for(int i=0; i<bcSize; i++){
-        aux_vec[i] = right_vec[i]  - bvec[i]*hp;
+        aux_vec[i] = right_vec[i] - bvec[i]*hp;
         //qtot  = qtot + right_vec[i];
-        printf("right_vec = %lf - %lf\n",right_vec[i],-bvec[i]);
+        //printf("right_vec = %lf - %lf\n",right_vec[i],-bvec[i]);
     }
     dgesv_(&N,&NRHS,aux_mat,&LDA,ipiv,aux_vec,&LDB,&info);
     if( info > 0 ) 
