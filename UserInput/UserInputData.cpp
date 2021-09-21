@@ -142,10 +142,11 @@ void printUsrData(std::string femModel,
     int charge, std::string atomSym,std::string multi, int angular, 
     double r0, double rN, 
     std::string mesh, std::string integrals){
-
-     std::cout<<"Your initial data:"<<std::endl;
+    printf("**************************************************\n");
+    std::cout<<"Your initial data:"<<std::endl;
     std::cout<<"FEM Model: "<<femModel<<std::endl;
     std::cout<<"Number of Elements: "<<Ne<<std::endl;
+    std::cout<<"Number of Points: "<<Ne*order + 1<<std::endl;
     std::cout<<"Order: "<<order<<std::endl;
     std::cout<<"Atomic Model: "<<atomicModel<<std::endl;
     if(atomicModel=="Confined"){
@@ -171,5 +172,7 @@ void printUsrData(std::string femModel,
     std::cout<<"rInfty: "<<rN<<std::endl;
 
     std::cout<<"Mesh: "<<mesh<<std::endl;
+    printf("**************************************************\n");
+
  
 }

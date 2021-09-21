@@ -1,8 +1,7 @@
+
 #include<iostream>
-#include<string>
-#include "Asfem.cpp"
-
-
+#include "ASFEM/Asfem.hpp"
+//#include "ASFPM/Asfpm.hpp"      
 
 int main ()
 {
@@ -12,23 +11,22 @@ int main ()
     int Ne;
     int order = 2;
     double r0 = 0.0;
-    double rN = 250.0;
+    double rN = 20.0;
     int poissNe = 100;
     int angular = 0;
     int charge = 0;
     double lambda = 0.f, wallValue = 0.f, rC = 0.f; 
-    std::string atom = "Be";
+    std::string atom = "He";
     std::string atomicModel = "Free-Atom";
     std::string gridName = "Froese-Fischer";
-    std::string femModel = "Fixed-Points";
+    std::string femModel = "Fixed Points";
     std::string integrals = "Analitic";
     std::string confType = "Free";
     int atomicN = getAtomicNumber(atom);
-    if(femModel=="Fixed-Points"){
-        printf("Fixed-Points\n");
+    if(femModel=="Fixed Points"){
+        printf("Fixed Points\n");
         int atomicN = getAtomicNumber(atom);
-        //Ne = grid_tools::froese_fischer::inverseKernel(rN,atomicN);
-        Ne = asfem_tools::getFixedElements(gridName,rN,order,2);
+        Ne = asfem_tools::getFixedElements(gridName,rN,order,atomicN);
         //std::cout<<"Points for this run: "<<Ne<<std::endl;
     }
     else{

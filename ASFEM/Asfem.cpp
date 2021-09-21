@@ -130,7 +130,7 @@ void ASFEM::getDensityMatrix(double *densMat){ //May be implemented in the Atomi
     for(int i=0; i<bcSize; i++){
         for(int j=0; j<bcSize; j++){
             for(int orb=0; orb<occOrb; orb++){
-                densMat[k] = 2.0*(wfn[i + orb*bcSize]*wfn[j + orb*bcSize]);
+                densMat[k] += 2.0*(wfn[i + orb*bcSize]*wfn[j + orb*bcSize]);
             }
             k++;
         }
@@ -202,20 +202,21 @@ void ASFEM::performSCF(){
     double energy0 = energyHF(hij,fij,densMat);
     printf("First Hartree-Fock Energy: %.10lf\n",energy0);
     getDensity();
+    
     divideBy(R_rho,rho,&femgrid[0],bcSize);
     solvePoissonEquation(hpot, R_rho,totQ);
-    R_hpot = computeHartreePotential(hpot);
+    for(int i=0; i<bcSize; i++){
+        printf("dens = %lf    uhpot = %lf\n",rho[i], hpot[i]);
+    }
+    /*R_hpot = computeHartreePotential(hpot);
     double new_hf= energy0;
     double orb_e,old_hf;
     //fixedElementsNumIntegration(vhij,R_hpot);
     fixedPointsNumIntegration(vhij,R_hpot);
-    /* for(int i=0; i<bcSize; i++){
-        printf("dens = %lf\n",rho[i]);
-    } */
-
+   
     SumMatrices(hij,vhij,fij,bcSize*bcSize);
     diag(bcSize,fij,&sij[0],eigenVal,wfn);
-    printf("Orbital value: %.10lf\n",0.5*eigenVal[0]);
+    printf("Orbital value: %.10lf\n",0.5*eigenVal[0]); */
 
     delete [] hij;
     delete [] vhij;
@@ -243,7 +244,7 @@ void ASFEM::printWfn(int orbital){
     std::cout<<"The Wave Function Phase is: "<<phase<<std::endl;
     for(int i=0; i<fem_nodes; i++)
     {
-        wfnData<<std::fixed<<std::setprecision(6)<<wfn[i + fem_nodes*realOrb]*(phase)<<std::endl;
+        wfnData<<std::fixed<<std::setprecision(6)<<femgrid[i]<<" "<<wfn[i + fem_nodes*realOrb]*(phase)<<std::endl;
 
     }
     wfnData.close();

@@ -9,4 +9,5 @@ void poissonSolver(double *hartree_vec,double *sij,double *lij,double *rho,int p
 void diag (int n, double *h, double *s, double *e, double *v);
 double doInterpolation(double *xin,double *yin,int grade);
 double nPolExtrapolation(double *x,double *y, int N,double target);
+void getWfnPhase(int nodes, int orb,int *phase,double *wfn);
 #endif // _MATH_METHODS_H_

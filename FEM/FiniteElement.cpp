@@ -281,7 +281,7 @@ void FEM::solvePoissonEquation(double *hpot, double *rho_r,double hp){
     for(int i=0; i<bcSize; i++){
         aux_vec[i] = right_vec[i]  - bvec[i]*hp;
         //qtot  = qtot + right_vec[i];
-        printf("right_vec = %lf - %lf\n",right_vec[i],-bvec[i]);
+        //printf("right_vec = %lf - %lf\n",right_vec[i],-bvec[i]);
     }
     dgesv_(&N,&NRHS,aux_mat,&LDA,ipiv,aux_vec,&LDB,&info);
     if( info > 0 ) 

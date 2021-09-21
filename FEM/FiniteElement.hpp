@@ -67,6 +67,10 @@ class FEM {
 };
 
 
+double integrateElement(int ei,int order,double *feMatS, int *link_mat, double coeff, double *cf);
+
+
+
 //#include "FiniteElement.cpp"
 
 #endif // _FEM_H_

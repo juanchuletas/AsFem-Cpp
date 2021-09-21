@@ -183,7 +183,7 @@ namespace asfem_tools{
 		double totpoints = atomicN*24.0*(log(rN) + 5);  
 		int points = floor(totpoints);
 		if(points%2==0){
-			points = points - 1;
+			points = points + 1;
 		}
 		nele = (points-1)/order;
 		return nele;

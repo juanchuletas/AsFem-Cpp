@@ -7,11 +7,11 @@ int main (){
     grid_tools::froese_fischer::hmf = 1.0/32.0;
     grid_tools::froese_fischer::rmf = 5.0;
     int Ne;
-    int order = 3;
+    int order = 2;
     double r0 = 0;
     double rc = 2.0;
     double rinfty = 250.0;
-    int atomicN = 1;  
+    int atomicN = 4.0;  
     double totpoints = grid_tools::froese_fischer::inverseKernel(rinfty,atomicN);
     int points = floor(totpoints);
     std::cout<<"Points gained: "<<points<<std::endl;
@@ -26,18 +26,18 @@ int main (){
     std::string mesh2 = "Chebyshev";
     std::string kind = "Fixed Elements";
     Grid<double> myGrid;
-    myGrid.setGridData(r0,rinfty,Ne,order,mesh,1);
+    myGrid.setGridData(r0,rinfty,Ne,order,mesh,atomicN);
     myGrid.createGrid(kind);
   
-    int myIndex = myGrid.forcedInsertion(rc);
+/*     int myIndex = myGrid.forcedInsertion(rc);
       for(int i=0; i<myGrid.size(); i++){
         printf("r[%d] = %lf\n",i, myGrid[i]);
     }
-    myGrid.refineNear(myIndex,0.006,1);
-    /*for(int i=0; i<myGrid.size(); i++){
+    myGrid.refineNear(myIndex,0.006,1); */
+    for(int i=0; i<myGrid.size(); i++){
         printf("r[%d] = %lf\n",i, myGrid[i]);
-    }*/
-    int p = order+1;
+    }
+    /* int p = order+1;
     int k=0;
     for(int i=0; i<Ne; i++){
         for(int j=0; j<order+1; j++){
@@ -45,7 +45,7 @@ int main (){
             k++; 
         }
         k--;
-    } 
+    }  */
     //myGrid.printGrid();
 
 

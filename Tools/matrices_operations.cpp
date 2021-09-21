@@ -9,7 +9,14 @@ void SumMatrices(double *A, double *B, double *C, int size)
 	}
 
 }
+void Substract(double *A, double *B, double *C, int size)
+{
+	for(int i=0; i<size; i++){
+	
+		C[i] = A[i] - B[i];
+	}
 
+}
 void FillZeroMat(double *mat,int M,int N)
 {
 	for(int i=0; i<M*N; i++)

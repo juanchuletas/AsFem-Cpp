@@ -71,7 +71,7 @@ int main(int argc, char **argv){
         //Exchange and Hartree potentials: 
         double *vh{nullptr}, *vx{nullptr};
 
-        //Strongly reccomend to fill with zeroes the matrices
+        //Strongly reccomended to fill with zeroes the matrices
         FillZeroMat(fij,bcDomain,bcDomain);
         FillZeroMat(hij,bcDomain,bcDomain);
         FillZeroMat(densMat,bcDomain,bcDomain);
