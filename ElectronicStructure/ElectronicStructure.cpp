@@ -33,6 +33,10 @@ namespace electronicStructure{
                 for(int orb=0; orb<orbitals; orb++){
                     densMat[k] += 2.0*(wfn[i + orb*bcnodes]*wfn[j + orb*bcnodes]);
                 }
+                //densMat[k] = 2.0*densMat[i];
+                /* if(i==j){
+                    printf("rho[%d] = %lf\n", k,densMat[k]);
+                } */
                 k++; 
 
             }
