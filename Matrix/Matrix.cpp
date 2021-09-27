@@ -159,16 +159,10 @@ const T& Matrix<T>::operator[](int i)const{
 }
 template<class T>
 T& Matrix<T>::operator[](int i){
-    try{
-        if (i<0 || i>=matSize) {
-            throw 0;
-        }
-	    return items[i];
+    if (i<0 || i>=matSize) {
+        throw std::out_of_range("Can not access out of bound element!");
     }
-    catch(int &ex){
-
-        std::cerr<<"OUT OF BOUNDS\n"<<std::endl;
-    }
+    return items[i];
 }
 template<class T>
 Matrix<T>& Matrix<T>::operator=(const Matrix<T> &source){
