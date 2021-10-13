@@ -32,8 +32,12 @@ template<class T> class Grid {
 
         void createGrid();
         void createGrid(std::string name);
+        void setSize(int _size);
         void setGridData(double rinit, double rfinal,int Ne, int order,std::string meshType);
         void setGridData(double rinit, double rfinal,int Ne, int order,std::string meshType,int atomicN);
+        void exponential();
+        void chebyshev();
+        void froeseFischer(int atomicN);
         void buildAtomic(int amtomicN);
         void buildAtomic(int atomicN, std::string name);
         void buildChebyshev();
@@ -44,6 +48,7 @@ template<class T> class Grid {
         int size();
         void printGrid();
         T& operator[](int i);
+        Grid<T>& operator=(const Grid<T>&source);
 
         
 };

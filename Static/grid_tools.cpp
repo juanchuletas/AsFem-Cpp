@@ -5,12 +5,15 @@
 namespace grid_tools{
 
     double froese_fischer::kernel(int i, double z){
-        double x; 
-        x = exp(-rmf + hmf*(double)i/z);
+        double x,kern;
+        kern = exp(-rmf+hmf*(double)i); 
+        x = kern/z;
+        return x;
     }
     double froese_fischer::inverseKernel(double rN,int atomicN){
         double z = static_cast<double>(atomicN);
-        double x = z*(1.0/hmf)*(log(rN) + rmf);
+        double x = (1.0/hmf)*(log(rN*z) + rmf);
+        return x;
 
     }
 }

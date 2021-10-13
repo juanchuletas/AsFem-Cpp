@@ -45,9 +45,17 @@ template<class T>
 T& Grid<T>::operator[](int i){
     return grid[i];
 }
-
+template<class T>
+Grid<T>& Grid<T>::operator=(const Grid<T> &source){
+       grid = source.grid;
+}
 // ***** END OPERATORS************
 // *************** METHODS ************************
+template<class T>
+void Grid<T>::setSize(int _size){
+    totalNodes = _size;
+    grid.setMatrix(_size);
+}
 template<class T>
 void Grid<T>::createGrid()
 {
@@ -155,6 +163,22 @@ void Grid<T>::refineNear(int point, double delta, int steps){
     }
 }
 template<class T>
+void Grid<T>::chebyshev(){
+    double xi,ra,rb;
+    double  rMax;
+    double xmax = 1. - cos( totalNodes*M_PI / (2.*(totalNodes + 1.)));
+    T *xprev;
+    xprev = new T[Ne];
+    T faca = (rN - r0)/xmax;
+    T facb = (r0*xmax)/xmax;
+    for ( int i = 0; i < totalNodes; i++){
+        xi = 1. - cos(i*M_PI / (2.*( totalNodes + 1.)));
+        grid[i] = faca * xi + facb;
+        //printf("%lf\n",xprev[i]);
+    }
+    grid[totalNodes-1] = rN;
+}
+template<class T>
 void Grid<T>::buildChebyshev(){
     double xi,ra,rb;
     double  rMax;
@@ -251,6 +275,44 @@ void Grid<T>::buildAtomic(int atomicN, std::string name){
     grid[totnodes-1] = rN;
 }
 template<class T>
+void Grid<T>::froeseFischer(int atomicN){
+    int totnodes = Ne*order+1;
+    
+    double ri,f_r1,f_r2;
+    double nucleii = static_cast<double>(atomicN);
+   
+
+    double rmin  = grid_tools::froese_fischer::kernel(0,nucleii);
+    double rmax  = grid_tools::froese_fischer::kernel(totnodes,nucleii);
+    
+    f_r1 = (rN-r0)/(rmax-rmin);
+    f_r2 = (r0*rmax-rN*rmin)/(rmax-rmin);   
+    for(int i=1;i<totnodes;i++)
+    {
+        //ri = FroeseFischer(i,atomicN,rmf,hmf);
+        ri = grid_tools::froese_fischer::kernel(i,nucleii);
+        //grid[i] = f_r1*ri + f_r2; 
+        grid[i] = ri;
+        //printf("Vertex value x[%d] = %lf\n",i,x[i]);
+    }
+    grid[0] = 0.f;
+    grid[totnodes-1] = rN;
+}
+template<class T>
+void Grid<T>::exponential(){
+    double denom = pow(totalNodes,2);
+    double nume;
+    double fracc;
+    double basis = (1+rN);
+    for(int i=1; i<totalNodes; i++){
+        nume = pow(i,2);
+        fracc = nume/denom;
+        grid[i] = pow(basis,fracc) - 1;
+    }
+    grid[0] = 0.0;
+    grid[totalNodes-1] = rN;
+}
+template<class T>
 void Grid<T>::setGridData(double rinit, double rfinal,int inNe, int inorder,std::string inmeshType){
     r0 = rinit; rN = rfinal; Ne = inNe;
     order = inorder; meshType = inmeshType;
@@ -287,6 +349,9 @@ T& Grid<T>::getElementSize(int i){
 }
 template<class T>
 void Grid<T>::printGrid(){
-    grid.printMatrix();
+    //grid.printMatrix();
+    for(int i=0; i<totalNodes; i++){
+        printf("r[%d] = %lf\n",i,grid[i]);
+    }
 }
 // *************** END METHODS ********************
