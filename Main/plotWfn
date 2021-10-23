@@ -1,0 +1,14 @@
+# Set the output to a png file
+#set terminal png size 600,600
+set terminal latex
+# The file we'll write to
+#set output 'wfn.png'
+set output "file.tex"
+set terminal pop
+# The graphic title
+set title 'Helium orbitals'
+set xrange[0.0:50.0];
+set yrange[-2.0:2.0];
+#plot the graphic
+plot 'wfn.dat' u 1:2 w lp title '1s' pt 7 ps 0.4 lc rgb "#FF3D00", \
+     'wfn.dat' u 1:3 w lp title '2s' pt 7 ps 0.4 lc rgb "#0000FF"

@@ -1,0 +1,1 @@
+g++ main.cpp ../Static/grid_tools.cpp ../Atomic_Computations/atomicStructure.cpp ../ElectronicStructure/electronicStructure.cpp ../FP_Model/FemFixedPoints.cpp ../FEM_Matrices/fixed_*.cpp ../Tools/*.cpp -o main.exe -llapack
