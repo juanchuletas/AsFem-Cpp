@@ -36,11 +36,13 @@
             rhoinput[i] = 2.0*rhoinput[i];
         }
     }
-    double * ClosedShell::ElectronicStructure::getPairDensity(int a_orb, int i_orb){
-        double *rhox = new double[fem_nodes];
-        for(int i=0; i<fem_nodes; i++){
-            rhox[i] = rhox[i] + orbVec[a_orb*fem_nodes + i]*orbVec[i_orb*fem_nodes + i];
+    void ClosedShell::ElectronicStructure::getPairDensity(double *rhox,int a_orb, int i_orb){
+        for(int i=0; i<bcSize; i++){
+            rhox[i] = 0.0;
+            rhox[i] = rhox[i] + orbVec[a_orb*bcSize + i]*orbVec[i_orb*bcSize + i];
+            //printf("pairdens[%d] = %lf\n",i,rhox[i]);
         }
+      
     }
     double *ClosedShell::ElectronicStructure::computeHatreePotential(double *uhpot){
         double *vhpot = new double[total_nodes];
@@ -57,9 +59,11 @@
         double *wx = new double[numOrb*bcSize];
         double *sourceVec = new double[bcSize];
         double *aux = new double[bcSize];
-        double *rhoX,*rightVector;
+        double *rhoX = new double[bcSize];
+        double *rightVector;
         double bundaryConValue;
         for(int a=0; a<numOrb; a++){
+            printf("Solving Poisson equation for orbital %d\n",a+1);
             if(a==inputOrbital){
                bundaryConValue = 1.0;
                 
@@ -67,14 +71,14 @@
             else{
                  bundaryConValue = 0.0;
             }
-            rhoX = getPairDensity(a, inputOrbital);
+            printf("Boundary value = %lf\n",bundaryConValue);
+            getPairDensity(rhoX,inputOrbital,a);
             rightVector = divideOverGridPoints(rhoX);
             getSourceVector(sourceVec,sij,rightVector,bundaryConValue);
             solvePoissonEquation(aux,sourceVec);
             for(int i=0; i<bcSize; i++){
                 wx[i + a*bcSize] = aux[i];
                 aux[i]=0.0;
-                rhoX[i]=0.0;
             }
         }
         delete [] sourceVec;
@@ -164,9 +168,11 @@
         double *density = new double[bcSize];
         double *eigenVal = new double[bcSize];
         double *vh,*rightVector;
+        double *wx,*vx,*exchangeVec;
         diag(bcSize,hcore,sij,eigenVal,matCoeffs);
-        int tol; 
-        while(tol<3){
+        int tol = 0; 
+        while(tol<5){
+            printf("Diagonalizatoin step %d\n",tol);
             wfnNormalization(matCoeffs);
             getOrbitals(matCoeffs); //Obtains the occupied Orbitals
             getTotalDensity(density);
@@ -177,6 +183,32 @@
             femNumericalIntegration(vh_mat,vh);
             SumMatrices(hcore,vh_mat,fock_mat,bcSize*bcSize);
             diag(bcSize,fock_mat,sij,eigenVal,matCoeffs);
+            tol++;
         }
+        printf("Eigenvalue by diagonalization  =  %lf\n",eigenVal[0]);
+        wx = computeAuxiliarExchangePotential(0,sij);
+        vx = computeExchangePotential(wx,0);
+        exchangeVec = integrateExchangePotential(vx);
+        rayleighQuotient(fock_mat,sij,exchangeVec);
+        /* for(int i=0; i<bcSize; i++){
+            printf("exVec[%d] = %lf\n",i, exchangeVec[i]);
+            //printf("wx12 = %lf     wx22  = %lf\n",wx[i + 0*bcSize], wx[i + 1*bcSize]);
+        } */
+        //getOrbitals(matCoeffs);  //Gets the newest orbitals
+        /* vx = computeExchangePotential(wx,1);
+        for(int i=0; i<globalSize; i++){
+            printf("r = % lf    VH = % lf     Vx21[%d] =  % lf    Vx22[%d] = % lf\n",femgrid[i],vh[i],i, vx[i + 0*globalSize],i,vx[i + 1*globalSize]);
+        } */
+        //Starting the iterative procedure: 
+        samePhase(0,1);
+        printWfn();   
+        //rayleighQuotient(hcore,sij,vh);
+        delete [] density;
+        delete [] wx;
+        delete [] vh;
+        delete [] rightVector;
+        delete [] sourceVec;
+        delete [] uhpot;
+        delete [] vh_mat;
 
     }

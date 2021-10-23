@@ -25,7 +25,7 @@ namespace ClosedShell{
             void iterativeSCF(double *hcore, double *sij, double *matCoefss);
             void solveHatreeFockequation(double *orbital);
             double * computeHatreePotential(double *iput);
-            double * getPairDensity(int a_orb, int i_orb);
+            void getPairDensity(double *xdens, int a_orb, int i_orb);
             void getTotalDensity(double *rhoinput);
             void getDensityMatrix(double *densMat);
             double *computeAuxiliarExchangePotential(int inputOrbital,double *sij);
