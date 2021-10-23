@@ -37,7 +37,7 @@ int Atomic::orbitalPhase(int orbOfinterest){
         der = val-prev;
         if(fabs(der)>1E-5){
             answer=0;
-            printf("The orbital changes the phase in %d\n",i);
+            //printf("The orbital changes the phase in %d\n",i);
         }
         prev = val;
         i++;
@@ -137,30 +137,34 @@ void Atomic::wfnNormalization(double *wfn){
 void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchagevec){
     double *trialVec = new double[(numOrb+virtualOrbs)*bcSize];
     double *matprodNum= new double[(numOrb+virtualOrbs)*bcSize];
-     double *matprodDenom= new double[(numOrb+virtualOrbs)*bcSize];
-    double *trialOrbital = new double[(numOrb+virtualOrbs)*bcSize];
+    double *matprodDenom= new double[(numOrb+virtualOrbs)*bcSize];
+    double *trialOrbital = new double[bcSize];
+    double *auxnum = new double[bcSize];
+    double *auxdenom = new double[bcSize];
     double *orbitalEnergy = new double[(numOrb+virtualOrbs)];
     int vecSize = (numOrb+virtualOrbs);
-    for(int i=0; i<(numOrb + virtualOrbs); i++){
+    //for(int i=0; i<(numOrb + virtualOrbs); i++){
         for(int j=0; j<bcSize; j++){
-            trialOrbital[j + i*bcSize] = orbVec[j + i*bcSize]; //Takes the trial vector;
+            trialOrbital[j] = orbVec[j + 0*bcSize]; //Takes the trial vector;
         }
-    }
-    MatrixProduct(f_mat,trialOrbital,matprodNum,bcSize,bcSize,vecSize);
-    MatrixProduct(smat,trialOrbital,matprodDenom,bcSize,bcSize,vecSize);
+    //}
+    MatrixProduct(f_mat,trialOrbital,auxnum,bcSize,bcSize,1);
+    MatrixProduct(smat,trialOrbital,auxdenom,bcSize,bcSize,1);
     double numerator,denominator;
-    for(int i=0; i<(numOrb + virtualOrbs); i++){
+    //for(int i=0; i<(numOrb + virtualOrbs); i++){
         numerator = 0.0;
         denominator = 0.0;
         for(int j=0; j<bcSize; j++){
-            numerator = numerator + trialVec[j + i*bcSize]*matprodNum[j + i*bcSize];
-            denominator = denominator + trialVec[j + i*bcSize]*matprodDenom[j + i*bcSize];
+            numerator = numerator + trialOrbital[j + 0*bcSize]*auxnum[j + 0*bcSize];
+            denominator = denominator + trialOrbital[j + 0*bcSize]*auxdenom[j + 0*bcSize];
             
         }
-        orbitalEnergy[i] = numerator/denominator;
-    }
-
+        orbitalEnergy[0] = numerator/denominator;
+    //}
+    printf("Orbital energy SCF = %lf\n",orbitalEnergy[0]);
     delete [] trialVec;
+    delete [] auxnum;
+    delete [] auxdenom;
     delete [] trialOrbital;
     delete [] orbitalEnergy;
     delete [] matprodNum;
@@ -174,4 +178,61 @@ void Atomic::samePhase(int orb1, int orb2){
         orbVec[i + orb1*bcSize] = phase1*orbVec[i + orb1*bcSize];
         orbVec[i + orb2*bcSize] = phase2*orbVec[i + orb2*bcSize];
     }
+}
+double * Atomic::computeExchangePotential(double *wx, int inputOrb){
+    double *vx = new double[numOrb*globalSize];
+    double *aux = new double[globalSize];
+    aux[0]=0.0; aux[globalSize-1] = 0.0;
+    for(int a=0; a<numOrb; a++){
+        for(int i=0; i<bcSize; i++){
+            aux[i+1] = 0.0;
+            aux[i+1] = wx[i + a*globalSize]/femgrid[i+1];
+        }
+        aux[0]=doInterpolation(&femgrid[0],aux,2);
+        if(a!=inputOrb){
+            aux[total_nodes-1] = 0.0;
+        }
+        else{
+            aux[total_nodes-1] = 1.0/femgrid[total_nodes-1];
+        }
+        for(int i = 0; i<globalSize; i++){
+            vx[i + a*globalSize] = aux[i];
+        }
+    }
+    
+    delete [] aux;
+    return vx;
+}
+double * Atomic::integrateExchangePotential(double *wx){
+    double *vx = new double[bcSize];
+    double *aux_vec = new double[globalSize];
+    double *matEx = new double[bcSize*bcSize];
+    double *vec = new double [bcSize];
+    double *vecprod = new double [bcSize];
+    FillZeroMat(matEx,bcSize,bcSize);
+    for(int a=0; a<numOrb; a++){
+        //Performs an integration for each orbital
+        
+        for(int i=0; i<globalSize; i++){
+            aux_vec[i]  = wx[i + a*bcSize];
+        }
+        femNumericalIntegration(matEx,aux_vec);
+        for(int i=0; i<bcSize; i++){
+            vec[i] = orbVec[i + a*bcSize];
+            vecprod[i]=0.0;
+        }
+        MatrixProduct(matEx,vec,vecprod,bcSize,bcSize,1);
+        printf("Multiplication of orbital %d \n", a);
+        for (int i = 0; i < bcSize; i++)
+        {
+            printf("prod = %lf\n", vecprod[i]);
+            vx[i] = vx[i] + vecprod[i];
+        }
+        
+    }
+    delete [] aux_vec;
+    delete [] vecprod;
+    delete [] vec;
+    delete [] matEx;
+    return vx;
 }

@@ -36,11 +36,13 @@ class Atomic : public FixedPoints{
         int orbitalPhase(int orbOfinterest);
         double * divideOverGridPoints(double *input);
         void integrateHartreePotential();
-        void integrateExchangePotential();
+        double * integrateExchangePotential(double *wx);
+        double *computeExchangePotential(double *wx, int inputOrb);
         void getOrbitals(double *matCoeff);
         double energyHF(double *hcore, double *fock_mat,double *densmat);
         void rayleighQuotient(double *hcoremat, double *smat,double *exchagevec);
         void samePhase(int orb1, int orb2);
+        
 
 };
 double integrateElement(int ei,int order,double *feMatS, int *link_mat, double coeff, double *cf);
