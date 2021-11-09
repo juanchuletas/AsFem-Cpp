@@ -19,13 +19,12 @@ namespace ClosedShell{
             ElectronicStructure();
             ElectronicStructure(int _Ne, int _order,Grid<double> _grid, int atomicN, int _numElec,int _virtualOrbs ,double _rMax);
             ~ElectronicStructure();
-
             // ****  Methods ***
             void eigenSystemSCF(double *hcore,double *sij, double *matCoeffs,double *eigenVal, bool flag,int inputTol);
             void iterativeSCF(double *hcore, double *sij, double *matCoefss);
             void solveHatreeFockequation(double *orbital);
             double * computeHatreePotential(double *iput);
-            void getPairDensity(double *xdens, int a_orb, int i_orb);
+            void getPairDensity(double *xdens,int a_orb, int i_orb);
             void getTotalDensity(double *rhoinput);
             void getDensityMatrix(double *densMat);
             double *computeAuxiliarExchangePotential(int inputOrbital,double *sij);

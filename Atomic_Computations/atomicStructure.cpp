@@ -134,7 +134,7 @@ void Atomic::wfnNormalization(double *wfn){
     delete [] feMatS;
     delete [] cf;
 }
-void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchagevec){
+void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchangevec){
     double *trialVec = new double[(numOrb+virtualOrbs)*bcSize];
     double *matprodNum= new double[(numOrb+virtualOrbs)*bcSize];
     double *matprodDenom= new double[(numOrb+virtualOrbs)*bcSize];
@@ -155,6 +155,9 @@ void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchagevec){
         numerator = 0.0;
         denominator = 0.0;
         for(int j=0; j<bcSize; j++){
+            
+            auxnum[j + 0*bcSize] = auxnum[j + 0*bcSize] - exchangevec[j];
+            printf("vx = %lf\n",exchangevec[j]);
             numerator = numerator + trialOrbital[j + 0*bcSize]*auxnum[j + 0*bcSize];
             denominator = denominator + trialOrbital[j + 0*bcSize]*auxdenom[j + 0*bcSize];
             
@@ -214,7 +217,7 @@ double * Atomic::integrateExchangePotential(double *wx){
         //Performs an integration for each orbital
         
         for(int i=0; i<globalSize; i++){
-            aux_vec[i]  = wx[i + a*bcSize];
+            aux_vec[i]  = wx[i + a*globalSize];
         }
         femNumericalIntegration(matEx,aux_vec);
         for(int i=0; i<bcSize; i++){
@@ -222,10 +225,10 @@ double * Atomic::integrateExchangePotential(double *wx){
             vecprod[i]=0.0;
         }
         MatrixProduct(matEx,vec,vecprod,bcSize,bcSize,1);
-        printf("Multiplication of orbital %d \n", a);
+        //printf("Multiplication of orbital %d \n", a);
         for (int i = 0; i < bcSize; i++)
         {
-            printf("prod = %lf\n", vecprod[i]);
+            //printf("prod = %lf\n", vecprod[i]);
             vx[i] = vx[i] + vecprod[i];
         }
         

@@ -110,7 +110,7 @@ void FixedPoints::assambleMatrices(double *kij, double *sij, double *vij,double 
                 //printf("v_matG[%d] = %lf + %lf = %lf\n",l*globalSize+m, v_matG[l*globalSize+m],feMatV[poly*nu+mu],v_matG[l*globalSize+m]);
                  
                     v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
-                    //printf("Vij[%d] = %lf\n",poly*nu+mu, v_matG[l*globalSize+m]);
+                //printf("Sij[%d] = %lf\n",poly*nu+mu, feMatK[poly*nu+mu]);
 
                 
 
