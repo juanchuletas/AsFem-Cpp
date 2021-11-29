@@ -29,11 +29,27 @@ void MatrixProduct(double *mat_A,double *mat_B, double *mat_C,int N,int M, int P
 			mat_C[i*P + j] = 0.0;
 			for(int k=0; k<M; k++)
 			{
-				mat_C[i*P + j] += mat_A[i*M + k]*mat_B[j + k*P];
+				mat_C[i*P + j] += mat_A[i*M + k]*mat_B[k + j*P];
 				
 			}
 		}
+	} 
+
+}
+void matMult(double *A, int rowsA,int colsA, double *B,int rowsB, int colsB,double *C){
+
+  double sum;
+  for(int i=0; i<rowsA; i++){
+	for(int j=0; j<colsB; j++){
+	  C[i*colsA+j] = 0.0;
+	  //printf("C[%d]\n",i*colsA+j);
+	  for(int k=0; k<rowsB; k++){
+		//printf("sum[%d]= A[%d]*B[%d]\n",i*colsA+j,  i*colsA + k,   j*colsB+k);
+	    C[i*colsA+j] += A[i*colsA + k]*B[j*colsB+k];
+	  }
+      
 	}
+  }
 }
 void MatXvec(double *matA,double *vec,double *res,int SIZE)
 {

@@ -10,4 +10,5 @@ void ColumnMayor(double *mat_A, double *mat_C, int N, int M);
 void RowMayor(double *mat_A, double *mat_C, int N, int M);
 void FillZeroMat(double *mat,int M,int N);
 void divideBy(double *newrho, double *rho,double *femnodes,int nfembasis);
+void matMult(double *A, int rowsA,int colsA, double *B,int rowsB, int colsB,double *C);
 #endif // _MATRICES_OPERATIONS
