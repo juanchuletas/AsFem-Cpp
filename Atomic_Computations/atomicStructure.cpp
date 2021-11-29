@@ -135,40 +135,34 @@ void Atomic::wfnNormalization(double *wfn){
     delete [] cf;
 }
 void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchangevec){
+    int totOrbitals = (numOrb+virtualOrbs); //Number of total orbitals selected by the user
     double *trialVec = new double[(numOrb+virtualOrbs)*bcSize];
     double *matprodNum= new double[(numOrb+virtualOrbs)*bcSize];
     double *matprodDenom= new double[(numOrb+virtualOrbs)*bcSize];
-    double *trialOrbital = new double[bcSize];
-    double *auxnum = new double[bcSize];
-    double *auxdenom = new double[bcSize];
     double *orbitalEnergy = new double[(numOrb+virtualOrbs)];
-    int vecSize = (numOrb+virtualOrbs);
-    //for(int i=0; i<(numOrb + virtualOrbs); i++){
+    for(int i=0; i<(numOrb + virtualOrbs); i++){
         for(int j=0; j<bcSize; j++){
-            trialOrbital[j] = orbVec[j + 0*bcSize]; //Takes the trial vector;
+            trialVec[j + i*bcSize] = orbVec[j + i*bcSize]; //Takes the trial vector;
         }
-    //}
-    MatrixProduct(f_mat,trialOrbital,auxnum,bcSize,bcSize,1);
-    MatrixProduct(smat,trialOrbital,auxdenom,bcSize,bcSize,1);
+    }
+    matMult(trialVec,totOrbitals,bcSize,f_mat,bcSize,bcSize,matprodNum);
+    matMult(trialVec,totOrbitals,bcSize,smat,bcSize,bcSize,matprodDenom);
     double numerator,denominator;
-    //for(int i=0; i<(numOrb + virtualOrbs); i++){
+    for(int i=0; i<(numOrb + virtualOrbs); i++){
         numerator = 0.0;
         denominator = 0.0;
         for(int j=0; j<bcSize; j++){
             
-            auxnum[j + 0*bcSize] = auxnum[j + 0*bcSize] - exchangevec[j];
-            printf("vx = %lf\n",exchangevec[j]);
-            numerator = numerator + trialOrbital[j + 0*bcSize]*auxnum[j + 0*bcSize];
-            denominator = denominator + trialOrbital[j + 0*bcSize]*auxdenom[j + 0*bcSize];
+            //auxnum[j + i*bcSize] = auxnum[j + i*bcSize];
+            //printf("vx = %lf\n",exchangevec[j]);
+            numerator = numerator + trialVec[j + i*bcSize]*matprodNum[j + i*bcSize];
+            denominator = denominator + trialVec[j + i*bcSize]*matprodDenom[j + i*bcSize];
             
         }
-        orbitalEnergy[0] = numerator/denominator;
-    //}
-    printf("Orbital energy SCF = %lf\n",orbitalEnergy[0]);
+        orbitalEnergy[i] = numerator/denominator;
+        printf("Orbital %d energy iterative SCF = %lf\n",i,0.5*orbitalEnergy[i]);
+    } 
     delete [] trialVec;
-    delete [] auxnum;
-    delete [] auxdenom;
-    delete [] trialOrbital;
     delete [] orbitalEnergy;
     delete [] matprodNum;
      delete [] matprodDenom;
