@@ -8,7 +8,7 @@
        
     }
     ClosedShell::ElectronicStructure::~ElectronicStructure(){
-        printf("It's donde!\n");
+        printf("Done!\n");
     }
     //---- Methods ------------
     void ClosedShell::ElectronicStructure::getDensityMatrix(double *densMat){ //May be implemented in the Atomic Structure Static Class
@@ -154,7 +154,7 @@
         else{
             double energy0;
             diag(bcSize,hcore,sij,eigenVal,matCoeffs);
-            printf("energy0 = %.16lf\n",0.5*eigenVal[0]);
+            printf("energy0 = %lf\n",0.5*eigenVal[0]);
             //asfem_tools::diag(matSize,hcore,sij,eigenVal,wfn);
         }
         
@@ -168,11 +168,11 @@
         double *density = new double[bcSize];
         double *eigenVal = new double[bcSize];
         double *vh,*rightVector;
-        double *wx,*vx,*exchangeVec;
+        //double *wx,*vx,*exchangeVec;
         diag(bcSize,hcore,sij,eigenVal,matCoeffs);
         int tol = 0; 
-        while(tol<5){
-            printf("Diagonalizatoin step %d\n",tol);
+        while(tol<6){
+            //printf("Diagonalizatoin step %d\n",tol);
             wfnNormalization(matCoeffs);
             getOrbitals(matCoeffs); //Obtains the occupied Orbitals
             getTotalDensity(density);
@@ -185,11 +185,16 @@
             diag(bcSize,fock_mat,sij,eigenVal,matCoeffs);
             tol++;
         }
-        printf("Eigenvalue by diagonalization  =  %lf\n",eigenVal[0]);
-        wx = computeAuxiliarExchangePotential(0,sij);
+        printf("Eigenvalue by diagonalization  =  %lf\n",0.5*eigenVal[0]);
+        /* wx = computeAuxiliarExchangePotential(0,sij);
         vx = computeExchangePotential(wx,0);
-        exchangeVec = integrateExchangePotential(vx);
-        rayleighQuotient(fock_mat,sij,exchangeVec);
+        exchangeVec = integrateExchangePotential(vx); */
+        samePhase(0,1);
+        rayleighQuotient(fock_mat,sij,NULL);
+        double innerprod = orbitalProduct(0,0);
+        printf("<phi(1s)|phi(1s)> =  %.10lf\n",innerprod);
+        innerprod = orbitalProduct(0,1);
+        printf("<phi(1s)|phi(2s)> =  %.10lf\n",fabs(innerprod));
         /* for(int i=0; i<bcSize; i++){
             printf("exVec[%d] = %lf\n",i, exchangeVec[i]);
             //printf("wx12 = %lf     wx22  = %lf\n",wx[i + 0*bcSize], wx[i + 1*bcSize]);
@@ -200,15 +205,16 @@
             printf("r = % lf    VH = % lf     Vx21[%d] =  % lf    Vx22[%d] = % lf\n",femgrid[i],vh[i],i, vx[i + 0*globalSize],i,vx[i + 1*globalSize]);
         } */
         //Starting the iterative procedure: 
-        samePhase(0,1);
-        printWfn();   
+        
+        //printWfn();   
         //rayleighQuotient(hcore,sij,vh);
         delete [] density;
-        delete [] wx;
         delete [] vh;
+        delete [] fock_mat;
         delete [] rightVector;
         delete [] sourceVec;
         delete [] uhpot;
+        delete [] eigenVal;
         delete [] vh_mat;
 
     }

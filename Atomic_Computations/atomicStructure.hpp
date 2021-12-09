@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include "../FP_Model/FemFixedPoints.hpp"
+//#include "../SYCL/SyclMatMul.hpp"
+#include "../MathTools/sycl_mathtools.hpp"
 class Atomic : public FixedPoints{
     
     protected:
@@ -32,8 +34,7 @@ class Atomic : public FixedPoints{
         void printWfn();
         // --- Methods
     protected:
-        void wfnNormalization(double *wfn);
-        int orbitalPhase(int orbOfinterest);
+        
         double * divideOverGridPoints(double *input);
         void integrateHartreePotential();
         double * integrateExchangePotential(double *wx);
@@ -41,7 +42,11 @@ class Atomic : public FixedPoints{
         void getOrbitals(double *matCoeff);
         double energyHF(double *hcore, double *fock_mat,double *densmat);
         void rayleighQuotient(double *hcoremat, double *smat,double *exchagevec);
+        //*** Orbital and wave function Methods **********
         void samePhase(int orb1, int orb2);
+        void wfnNormalization(double *wfn);
+        int orbitalPhase(int orbOfinterest);
+        double orbitalProduct(int i, int j);
         
 
 };

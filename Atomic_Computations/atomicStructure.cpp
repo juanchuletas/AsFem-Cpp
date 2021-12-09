@@ -2,7 +2,7 @@
 
 
 Atomic::Atomic(){
-    //std::cout<<"Atomic Structure Computations\n";
+std::cout<<"Empty Atomic Structure Computations\n";
 }
 Atomic::Atomic(int _Ne, int _order,Grid<double> _grid, int _atomicN, int _numElec, int _orbs,int _virtualOrbs,double _rMax)
 : atomicN{_atomicN},numOrb{_orbs}, r0{0}, rN{_rMax},numElec{_numElec},virtualOrbs{_virtualOrbs}, FixedPoints{_Ne,_order,_grid}{
@@ -17,6 +17,7 @@ Atomic::~Atomic(){/*Destructor*/
     printf("Have a nice Day\n");
     delete [] orbVec;
 }
+//*** Orbital and wave function Methods **********
 void Atomic::getOrbitals(double *matCoeff){
     int k=0;
     for(int i=0; i<(numOrb+virtualOrbs); i++){
@@ -81,6 +82,48 @@ void Atomic::printWfn(){
     //wfnData<<std::fixed<<std::setprecision(6)<<femgrid[0]<<"\t"<<0.0<<"\t"<<0.0<<std::endl;
     wfnData.close();
 }
+double Atomic::orbitalProduct(int a, int b){
+    double iint;
+    double x[poly];
+    double *feMatS{nullptr};
+    double phi[poly];
+    double phi2[poly];
+    double *vector_1 = new double[globalSize];
+    double *vector_2 = new double[globalSize];
+    vector_1[0] = 0.0;
+    vector_2[0] = 0.0;
+    for(int i=1; i<bcSize+1; i++){
+        vector_1[i] = orbVec[a*bcSize + (i-1)];
+        vector_2[i] = orbVec[b*bcSize + (i-1)];
+    }
+    vector_1[globalSize-1] = 0.0;
+    vector_2[globalSize-1] = 0.0;
+    double integral = 0.0;
+    for(int ei=0; ei<Ne; ei++){
+         for(int j=0; j<poly; j++){
+            int indx = poly*ei + j;
+            int i = linkMat[indx];
+            x[j] = femgrid[i];
+            phi[j] = vector_1[i];
+            phi2[j] = vector_2[i];
+        }
+        feMatS = getFixedPointsOverlapMatrices(x,order);
+        double sum_elem = 0.0;
+        for(int mu=0; mu<poly; mu ++){
+            for(int nu=0; nu<poly; nu++){
+                sum_elem = sum_elem + phi[mu]*phi2[nu]*feMatS[poly*mu + nu];
+            }
+        }
+        integral = integral + sum_elem;
+    }
+    delete [] feMatS;
+    delete []  vector_1;
+    delete []  vector_2;
+
+    return integral;
+}
+// *** END  Orbital and wave function Methods **********
+
 double Atomic::energyHF(double *hij, double *fij,double *densMat){
     
     double energy = 0.0;
@@ -136,20 +179,23 @@ void Atomic::wfnNormalization(double *wfn){
 }
 void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchangevec){
     int totOrbitals = (numOrb+virtualOrbs); //Number of total orbitals selected by the user
-    double *trialVec = new double[(numOrb+virtualOrbs)*bcSize];
-    double *matprodNum= new double[(numOrb+virtualOrbs)*bcSize];
-    double *matprodDenom= new double[(numOrb+virtualOrbs)*bcSize];
-    double *orbitalEnergy = new double[(numOrb+virtualOrbs)];
+    double *trialVec = new double[totOrbitals*bcSize];
+    //double *matprodNum= new double[totOrbitals*bcSize];
+    //double *matprodDenom= new double[totOrbitals*bcSize];
+    double *orbitalEnergy{nullptr};
     for(int i=0; i<(numOrb + virtualOrbs); i++){
         for(int j=0; j<bcSize; j++){
             trialVec[j + i*bcSize] = orbVec[j + i*bcSize]; //Takes the trial vector;
         }
     }
-    matMult(trialVec,totOrbitals,bcSize,f_mat,bcSize,bcSize,matprodNum);
-    matMult(trialVec,totOrbitals,bcSize,smat,bcSize,bcSize,matprodDenom);
-    double numerator,denominator;
+    orbitalEnergy = SYCL_ENABLE::MathTools::rayleighQuotient(f_mat,smat,trialVec,exchangevec,totOrbitals,bcSize);
+    //matMult(trialVec,totOrbitals,bcSize,f_mat,bcSize,bcSize,matprodNum);
+    //matMult(trialVec,totOrbitals,bcSize,smat,bcSize,bcSize,matprodDenom); 
+    /* syclMatMul(trialVec,totOrbitals,bcSize,f_mat,bcSize,bcSize,matprodNum);
+    syclMatMul(trialVec,totOrbitals,bcSize,smat,bcSize,bcSize,matprodDenom);
+    double numerator,denominator;*/
     for(int i=0; i<(numOrb + virtualOrbs); i++){
-        numerator = 0.0;
+       /*  numerator = 0.0;
         denominator = 0.0;
         for(int j=0; j<bcSize; j++){
             
@@ -159,13 +205,13 @@ void Atomic::rayleighQuotient(double *f_mat, double *smat, double *exchangevec){
             denominator = denominator + trialVec[j + i*bcSize]*matprodDenom[j + i*bcSize];
             
         }
-        orbitalEnergy[i] = numerator/denominator;
+        orbitalEnergy[i] = numerator/denominator; */
         printf("Orbital %d energy iterative SCF = %lf\n",i,0.5*orbitalEnergy[i]);
-    } 
+    }  
     delete [] trialVec;
     delete [] orbitalEnergy;
-    delete [] matprodNum;
-     delete [] matprodDenom;
+    //delete [] matprodNum;
+     //delete [] matprodDenom;
 }
 void Atomic::samePhase(int orb1, int orb2){
     int phase1 = orbitalPhase(orb1);
