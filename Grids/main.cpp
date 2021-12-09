@@ -20,6 +20,7 @@ int main (){
         points = points - 1;
     }
     Ne = (points-1)/order;
+    int totnodes = Ne*order + 1;
     std::cout<<"Elements for this run: "<<Ne<<std::endl;
     std::cout<<"Points for this run: "<<Ne*order+1<<std::endl;
      std::string mesh = "Froese-Fischer";
@@ -28,16 +29,19 @@ int main (){
     Grid<double> myGrid;
     myGrid.setGridData(r0,rinfty,Ne,order,mesh,1);
     myGrid.createGrid(kind);
-  
-    int myIndex = myGrid.forcedInsertion(rc);
+    Grid<double> grid1;
+    grid1.setSize(totnodes);
+    grid1.copy(myGrid);
+    grid1.printGrid();
+    /* int myIndex = myGrid.forcedInsertion(rc);
       for(int i=0; i<myGrid.size(); i++){
         printf("r[%d] = %lf\n",i, myGrid[i]);
     }
-    myGrid.refineNear(myIndex,0.006,1);
+    myGrid.refineNear(myIndex,0.006,1); */
     /*for(int i=0; i<myGrid.size(); i++){
         printf("r[%d] = %lf\n",i, myGrid[i]);
-    }*/
-    int p = order+1;
+    }
+    /* int p = order+1;
     int k=0;
     for(int i=0; i<Ne; i++){
         for(int j=0; j<order+1; j++){
@@ -45,7 +49,7 @@ int main (){
             k++; 
         }
         k--;
-    } 
+    }  */
     //myGrid.printGrid();
 
 

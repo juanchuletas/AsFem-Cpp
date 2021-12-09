@@ -45,12 +45,17 @@ template<class T>
 T& Grid<T>::operator[](int i){
     return grid[i];
 }
-template<class T>
+/* template<class T>
 Grid<T>& Grid<T>::operator=(const Grid<T> &source){
        grid = source.grid;
-}
+} */
 // ***** END OPERATORS************
 // *************** METHODS ************************
+template<class T>
+void Grid<T>::copy(const Grid<T> &source){
+
+    this->grid = source.grid;
+}
 template<class T>
 void Grid<T>::setSize(int _size){
     totalNodes = _size;
@@ -267,9 +272,9 @@ void Grid<T>::buildAtomic(int atomicN, std::string name){
     {
         //ri = FroeseFischer(i,atomicN,rmf,hmf);
         ri = grid_tools::froese_fischer::kernel(i,nucleii);
-        //grid[i] = f_r1*ri + f_r2; 
-        grid[i] = ri;
-        //printf("Vertex value x[%d] = %lf\n",i,x[i]);
+        grid[i] = f_r1*ri + f_r2; 
+        //grid[i] = ri;
+        printf("Vertex value grid[%d] = %lf\n",i,grid[i]);
     }
     grid[0] = 0.f;
     grid[totnodes-1] = rN;
@@ -277,7 +282,7 @@ void Grid<T>::buildAtomic(int atomicN, std::string name){
 template<class T>
 void Grid<T>::froeseFischer(int atomicN){
     int totnodes = Ne*order+1;
-    
+    printf("Froese-Fischer\n");
     double ri,f_r1,f_r2;
     double nucleii = static_cast<double>(atomicN);
    
@@ -291,9 +296,9 @@ void Grid<T>::froeseFischer(int atomicN){
     {
         //ri = FroeseFischer(i,atomicN,rmf,hmf);
         ri = grid_tools::froese_fischer::kernel(i,nucleii);
-        //grid[i] = f_r1*ri + f_r2; 
-        grid[i] = ri;
-        //printf("Vertex value x[%d] = %lf\n",i,x[i]);
+        grid[i] = f_r1*ri + f_r2; 
+        //grid[i] = ri;
+        //printf("Vertex value x[%d] = %lf\n",i,grid[i]);
     }
     grid[0] = 0.f;
     grid[totnodes-1] = rN;

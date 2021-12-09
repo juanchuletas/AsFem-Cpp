@@ -31,7 +31,6 @@ Matrix<T>::Matrix(int inputSize,T& data)
 template<class T>
 Matrix<T>::Matrix(const Matrix<T>&source)
 :matSize{source.matSize}{
-    //std::cout<<"CPY CONSTRUCTOR\n";
 
     items = new T[matSize];
     for(int i=0; i<matSize; i++){
@@ -169,6 +168,7 @@ T& Matrix<T>::operator[](int i){
 
         std::cerr<<"OUT OF BOUNDS\n"<<std::endl;
     }
+    return items[i];
 }
 template<class T>
 Matrix<T>& Matrix<T>::operator=(const Matrix<T> &source){
@@ -183,6 +183,6 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T> &source){
             this->fillWithZeros();
         }
     }
-
+    return *this;
 }
 // **END OPERATORS**

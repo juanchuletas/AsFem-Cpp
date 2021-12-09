@@ -47,8 +47,9 @@ template<class T> class Grid {
         T& getGridItem(int i);
         int size();
         void printGrid();
+        void copy(const Grid<T>&source);
         T& operator[](int i);
-        Grid<T>& operator=(const Grid<T>&source);
+        //Grid<T>& operator=(const Grid<T>&source);
 
         
 };
