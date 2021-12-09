@@ -13,7 +13,7 @@ FixedPoints::FixedPoints(int _Ne, int _order, Grid<double> &inputGrid)
     linkMat.setMatrix(linkmatSize);
     buildLinkMAtrix();
     femgrid.setSize(globalSize);
-    femgrid = inputGrid;
+    femgrid.copy(inputGrid);
     //bvec = new double[bcSize];
     //femgrid.printGrid();
 }
@@ -110,7 +110,7 @@ void FixedPoints::assambleMatrices(double *kij, double *sij, double *vij,double 
                 //printf("v_matG[%d] = %lf + %lf = %lf\n",l*globalSize+m, v_matG[l*globalSize+m],feMatV[poly*nu+mu],v_matG[l*globalSize+m]);
                  
                     v_matG[l*globalSize+m] += feMatV[poly*nu+mu];
-                //printf("Sij[%d] = %lf\n",poly*nu+mu, feMatK[poly*nu+mu]);
+                    //printf("Vij[%d] = %lf\n",poly*nu+mu, feMatV[poly*nu+mu]);
 
                 
 
@@ -139,6 +139,7 @@ void FixedPoints::getSourceVector(double *sourceVec,double *matS, double *rightV
     MatrixProduct(matS,rightVec,aux,poisson_domain_size,poisson_domain_size,1);
     for(int i = 0; i<poisson_domain_size; i++){
             sourceVec[i] = aux[i] - bvec[i]*bcValue;
+            //printf("%lf\n",aux[i]);
     }
     delete [] aux;
 }

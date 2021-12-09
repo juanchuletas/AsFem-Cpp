@@ -4,11 +4,10 @@
 #include "../Tools/external_potential.hpp"
 #include "../Tools/matrices_operations.hpp"
 #include "../Tools/math_modules.hpp"
-#include "../FEM_Matrices/fixed_points_analitic_vr_matrices.hpp"
-#include "../FEM_Matrices/fixed_points_kinect_matrices.hpp"
-#include "../FEM_Matrices/fixed_points_num_pot_matrices.hpp"
-#include "../FEM_Matrices/fixed_points_overlap_matrices.hpp"
-#include "../FEM_Matrices/fixed_points_mixed_vr_matrices.hpp"
+#include "../FP_FEM_Matrices/fixed_points_analitic_vr_matrices.hpp"
+#include "../FP_FEM_Matrices/fixed_points_kinect_matrices.hpp"
+#include "../FP_FEM_Matrices/fixed_points_num_pot_matrices.hpp"
+#include "../FP_FEM_Matrices/fixed_points_overlap_matrices.hpp"
 
 
 class FixedPoints {
